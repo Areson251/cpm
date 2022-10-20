@@ -5,6 +5,7 @@ import numpy as np
 
 IMAGE_1_PATH = 'photos/1.png'
 IMAGE_2_PATH = 'photos/3.png'
+PIXELS_STEP = 100
 
 SHAPE = 10
 
@@ -25,6 +26,29 @@ def count_difference(image1, image2):
             pixel = sum / (image2.shape[0] * image2.shape[1])
             pixels_row.append(round(pixel))      
         image_pixels.append(pixels_row)  
+    
+    return np.array(image_pixels)
+
+
+def count_difference_with_step(image1, image2, step):
+    # width, height = count_shapes(image1, image2)
+
+    image_pixels = []
+    i_num, j_num = 0, 0
+
+    #TODO: write normal cycle
+    while i_num != image1.shape[0]:
+        pixels_row = []
+        while j_num != image1.shape[1]:
+            sum = 0
+            for i in range(image2.shape[0]):
+                for j in range(image2.shape[1]):
+                    sum += 255 - abs(image1.item((i_num + i, j_num + j)) - image2.item((i, j))) 
+            pixel = sum / (image2.shape[0] * image2.shape[1])
+            pixels_row.append(round(pixel))    
+            j_num+=step  
+        image_pixels.append(pixels_row)  
+        i_num+=step
     
     return np.array(image_pixels)
 
@@ -65,12 +89,13 @@ if __name__ == "__main__":
     image2 = cv2.imread(IMAGE_2_PATH,0)
 
     # pixels = count_difference(image1, image2)
-    pixels = create_convolution(image1, SHAPE)
+    # pixels = create_convolution(image1, SHAPE)
+    pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
     pixels = create_image(pixels)
     
     # show image
-    # cv2.imshow('result',np.uint8(pixels))
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
+    cv2.imshow('result',np.uint8(pixels))
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
