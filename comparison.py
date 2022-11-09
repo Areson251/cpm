@@ -3,11 +3,11 @@ from ctypes.wintypes import SHORT
 import cv2
 import numpy as np
 import time, datetime
+import math
 
-
-IMAGE_1_PATH = 'photos/1.png'
-IMAGE_2_PATH = 'photos/3.png'
-PIXELS_STEP = 100
+IMAGE_1_PATH = 'photos/1_yandex.png'
+IMAGE_2_PATH = 'photos/5.png'
+PIXELS_STEP = 101
 
 SHAPE = 10
 
@@ -59,26 +59,28 @@ def count_difference_with_step(image1, image2, step):
     return np.array(image_pixels)
 
 
-def create_convolution(image1, shape):
-    image_pixels = []
-    width = round(image1.shape[1] / shape)
-    height = round(image1.shape[0] / shape)
+def create_convolution(image1, image2, step):
+    width, height = count_shapes(image1, image2)
 
+    image_pixels = []
+
+    #TODO: write normal cycle
     for i_num in range(height):
         pixels_row = []
         for j_num in range(width):
-            for i in range(shape):
-                for j in range(shape):
-                    pixel = image1.item((i_num*shape + i, j_num*shape + j))
+            sum = 0
+            for i in range(image2.shape[0]):
+                for j in range(image2.shape[1]):
+                    sum += 255 - abs(image1.item((i_num*image2.shape[0] + i, j_num*image2.shape[1] + j)) - image2.item((i, j))) 
+            pixel = sum / (image2.shape[0] * image2.shape[1])
             pixels_row.append(round(pixel))      
         image_pixels.append(pixels_row)  
-
-    return np.array(image_pixels)
-
+    
 
 def count_shapes(image1, image2):
-    width = round(image1.shape[1] / image2.shape[1])
-    height = round(image1.shape[0] / image2.shape[0])
+    width = math.floor(image1.shape[1] / image2.shape[1])
+    height = math.floor(image1.shape[0] / image2.shape[0])
+
     return width, height
 
 
@@ -97,7 +99,7 @@ if __name__ == "__main__":
     image2 = cv2.imread(IMAGE_2_PATH,0)
 
     # pixels = count_difference(image1, image2)
-    # pixels = create_convolution(image1, SHAPE)
+    # pixels = create_convolution(image1, image2, PIXELS_STEP)
     pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
     pixels = create_image(pixels)
