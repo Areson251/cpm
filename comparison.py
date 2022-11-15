@@ -6,8 +6,8 @@ import time, datetime
 import math
 
 IMAGE_1_PATH = 'photos/1_yandex.png'
-IMAGE_2_PATH = 'photos/5.png'
-PIXELS_STEP = 101
+IMAGE_2_PATH = 'photos/3_.png'
+PIXELS_STEP = 21
 
 SHAPE = 10
 
@@ -55,8 +55,19 @@ def count_difference_with_step(image1, image2, step):
         i_num += step
         kol_steps += 1
         print(f"STEP NUMBER: {kol_steps}")
+
+    max, min = 0, 256
+    for i in image_pixels:
+        for j in i:
+            if j > max:
+                max = j
+            if j < min:
+                min = j
+
+    im = np.array(image_pixels)
+    res_pixels = 255 * (im - min)//(max-min) 
     
-    return np.array(image_pixels)
+    return np.array(res_pixels)
 
 
 def create_convolution(image1, image2, step):
@@ -102,11 +113,11 @@ if __name__ == "__main__":
     # pixels = create_convolution(image1, image2, PIXELS_STEP)
     pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
-    pixels = create_image(pixels)
+    # pixels = create_image(pixels)
     
     print(f"SECONDS SPENT: {time.time() - init_time}")
     # show image
-    cv2.imshow('result',np.uint8(pixels))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
+    # cv2.imshow('result',np.uint8(pixels))
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
