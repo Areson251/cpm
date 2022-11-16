@@ -6,7 +6,7 @@ import time, datetime
 import math
 
 IMAGE_1_PATH = 'photos/1_yandex.png'
-IMAGE_2_PATH = 'photos/5.png'
+IMAGE_2_PATH = 'photos/3_.png'
 PIXELS_STEP = 101
 
 SHAPE = 10
@@ -33,11 +33,11 @@ def count_difference(image1, image2):
 
 
 def count_difference_with_step(image1, image2, step):
-    # width, height = count_shapes(image1, image2)
+    w, h = count_shapes(image1, image2)
     width = image1.shape[1] - image2.shape[1]
     height = image1.shape[0] - image2.shape[0]
 
-    image_pixels = []
+    image_pixels = np.array([]) 
     i_num, kol_steps = 0, 0
 
     #TODO: write normal cycle
@@ -48,15 +48,19 @@ def count_difference_with_step(image1, image2, step):
             for i in range(image2.shape[0]):
                 for j in range(image2.shape[1]):
                     sum += 255 - abs(image1.item((i_num + i, j_num + j)) - image2.item((i, j))) 
-            pixel = sum / (image2.shape[0] * image2.shape[1])
-            pixels_row.append(round(pixel))    
+            # pixel = sum / (image2.shape[0] * image2.shape[1])
+            image_pixels = np.append(image_pixels, sum / (image2.shape[0] * image2.shape[1]))
+            # image_pixels.item(i_num, j_num) = pixel
             j_num+=step  
-        image_pixels.append(pixels_row)  
+        # image_pixels = np.append(image_pixels, pixels_row, axis=0)  
         i_num += step
         kol_steps += 1
         print(f"STEP NUMBER: {kol_steps}")
     
-    return np.array(image_pixels)
+    min = np.amin(image_pixels)
+    max = np.amax(image_pixels)
+    A = 255 * (image_pixels - min)//(max-min)
+    return np.reshape(A, (math.floor(i_num/step), -1))
 
 
 def create_convolution(image1, image2, step):
@@ -102,11 +106,11 @@ if __name__ == "__main__":
     # pixels = create_convolution(image1, image2, PIXELS_STEP)
     pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
-    pixels = create_image(pixels)
+    # pixels = create_image(pixels)
     
     print(f"SECONDS SPENT: {time.time() - init_time}")
     # show image
-    cv2.imshow('result',np.uint8(pixels))
+    cv2.imshow('result', pixels)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
