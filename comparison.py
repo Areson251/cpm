@@ -7,7 +7,7 @@ import math
 
 IMAGE_1_PATH = 'photos/1_yandex.png'
 IMAGE_2_PATH = 'photos/3_.png'
-PIXELS_STEP = 101
+PIXELS_STEP = 21
 
 SHAPE = 10
 
@@ -60,7 +60,8 @@ def count_difference_with_step(image1, image2, step):
     min = np.amin(image_pixels)
     max = np.amax(image_pixels)
     A = 255 * (image_pixels - min)//(max-min)
-    return np.reshape(A, (math.floor(i_num/step), -1))
+    B = np.reshape(A.astype(int), (math.floor(i_num/step), -1))
+    return B
 
 
 def create_convolution(image1, image2, step):
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     
     print(f"SECONDS SPENT: {time.time() - init_time}")
     # show image
-    cv2.imshow('result', pixels)
+    cv2.imshow('result', pixels.astype(np.uint8))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
