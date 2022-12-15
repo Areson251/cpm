@@ -7,7 +7,7 @@ import math
 
 IMAGE_1_PATH = 'photos/1_yandex.png'
 IMAGE_2_PATH = 'photos/3_.png'
-PIXELS_STEP = 21
+PIXELS_STEP = 101
 
 SHAPE = 10
 
@@ -32,7 +32,7 @@ def count_difference(image1, image2):
     return np.array(image_pixels)
 
 
-def count_difference_with_step(image1, image2, step):
+def count_difference_with_step(image1, image2, step=101):
     w, h = count_shapes(image1, image2)
     width = image1.shape[1] - image2.shape[1]
     height = image1.shape[0] - image2.shape[0]
@@ -47,6 +47,7 @@ def count_difference_with_step(image1, image2, step):
             sum = 0
             for i in range(image2.shape[0]):
                 for j in range(image2.shape[1]):
+                    # print(i, j, i_num, j_num)
                     sum += 255 - abs(image1.item((i_num + i, j_num + j)) - image2.item((i, j))) 
             # pixel = sum / (image2.shape[0] * image2.shape[1])
             image_pixels = np.append(image_pixels, sum / (image2.shape[0] * image2.shape[1]))
