@@ -19,12 +19,12 @@ class AlgoProcessing(QMainWindow):
         self.setStyleSheet("background-color: white;")
 
         self.button_take_photo = QPushButton("ВЕРНУТЬСЯ К\nРЕДАКТИРОВАНИЮ", self)
-        self.button_take_photo.setGeometry(50, 520, 200, 60)
+        self.button_take_photo.setGeometry(580, 300, 200, 60)
         self.button_take_photo.clicked.connect(self.remake_photo)
 
-        self.button_save_photo = QPushButton("ОСТАНОВИТЬ", self)
-        self.button_save_photo.setGeometry(540, 530, 200, 40)
-        # self.button_save_photo.clicked.connect(self.save_img)
+        self.button_save_photo = QPushButton("СОХРАНИТЬ", self)
+        self.button_save_photo.setGeometry(580, 400, 200, 40)
+        self.button_save_photo.clicked.connect(self.save_img)
 
         self.map_img = cv2.imread("photos/1_yandex.png")
         self.map_img = cv2.cvtColor(self.map_img, cv2.COLOR_BGR2RGB) 
@@ -41,23 +41,27 @@ class AlgoProcessing(QMainWindow):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)        
         self.hot_map = comparison.count_difference_with_step(map, gray)
         self.hot_map = np.array(self.hot_map, dtype='uint8')
-        width = int(self.hot_map.shape[1] * 5)
-        height = int(self.hot_map.shape[0] * 5)
+        width = int(self.hot_map.shape[1] * 38)
+        height = int(self.hot_map.shape[0] * 38)
         dim = (width, height)
         print(dim)
-        # self.hot_map = cv2.resize(self.hot_map, dim, interpolation = cv2.INTER_LINEAR)
+        self.hot_map = cv2.resize(self.hot_map, dim, interpolation = cv2.INTER_LINEAR)
         # cv2.imshow("s", self.hot_map)
-        # self.hot_map = cv2.cvtColor(self.hot_map, cv2.COLOR_BGR2RGB) 
+        self.hot_map = cv2.cvtColor(self.hot_map, cv2.COLOR_BGR2RGB) 
         self.hot_map = QImage(self.hot_map.data, self.hot_map.shape[1], self.hot_map.shape[0], self.hot_map.strides[0], QImage.Format.Format_RGB888)
 
         self.label2 = QLabel(self)
         self.pixmap2 = QPixmap(self.hot_map)
         self.label2.setPixmap(self.pixmap2)
-        self.label2.setGeometry(25, 300, self.pixmap2.width(), self.pixmap2.height())
+        self.label2.setGeometry(25, 320, self.pixmap2.width(), self.pixmap2.height())
         # cv2.imshow('result', hot_map.astype(np.uint8))
 
     def remake_photo(self):
         photo_window.show()
+        process_window.close() 
+
+    def save_img(self):
+        main_window.show()
         process_window.close() 
 
 
