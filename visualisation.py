@@ -26,7 +26,7 @@ class AlgoProcessing(QMainWindow):
         self.button_save_photo.setGeometry(580, 400, 200, 40)
         self.button_save_photo.clicked.connect(self.save_img)
 
-        self.map_img = cv2.imread("photos/1_yandex.png")
+        self.map_img = cv2.imread("photos/maps/1_yandex.png")
         self.map_img = cv2.cvtColor(self.map_img, cv2.COLOR_BGR2RGB) 
         self.map_img = QImage(self.map_img.data, self.map_img.shape[1], self.map_img.shape[0], self.map_img.strides[0], QImage.Format.Format_RGB888)
 
@@ -101,7 +101,7 @@ class ImagePreprocessing(QMainWindow):
         print(value)
 
     def load_img(self):
-        self.img1 = cv2.imread("photos/2.png")
+        self.img1 = cv2.imread("photos/pictures/2.png")
         self.img1 = cv2.cvtColor(self.img1, cv2.COLOR_BGR2RGB) 
         self.image1 = QImage(self.img1.data, self.img1.shape[1], self.img1.shape[0], QImage.Format.Format_RGB888)
 
@@ -147,7 +147,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: white;")
 
         self.label = QLabel(self)
-        self.pixmap = QPixmap('photos/2.png')
+        self.pixmap = QPixmap('photos/pictures/2.png')
         self.label.setPixmap(self.pixmap)
         self.label.setGeometry(50, 125, self.pixmap.width(), self.pixmap.height())
 
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    map_1 = cv2.imread("photos/1_yandex.png",0)
+    map_1 = cv2.imread("photos/maps/1_yandex.png",0)
 
     main_window = MainWindow()
     main_window.show()

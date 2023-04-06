@@ -4,32 +4,14 @@ import cv2
 import numpy as np
 import time, datetime
 import math
+from matplotlib import pyplot as plt
 
-IMAGE_1_PATH = 'photos/1_yandex.png'
-IMAGE_2_PATH = 'photos/3_.png'
-PIXELS_STEP = 101
+
+IMAGE_1_PATH = 'photos/maps/yandex.jpg'
+IMAGE_2_PATH = 'photos/pictures/g_cropped.jpg'
+PIXELS_STEP = 51
 
 SHAPE = 10
-
-
-def count_difference(image1, image2):
-    width, height = count_shapes(image1, image2)
-
-    image_pixels = []
-
-    #TODO: write normal cycle
-    for i_num in range(height):
-        pixels_row = []
-        for j_num in range(width):
-            sum = 0
-            for i in range(image2.shape[0]):
-                for j in range(image2.shape[1]):
-                    sum += 255 - abs(image1.item((i_num*image2.shape[0] + i, j_num*image2.shape[1] + j)) - image2.item((i, j))) 
-            pixel = sum / (image2.shape[0] * image2.shape[1])
-            pixels_row.append(round(pixel))      
-        image_pixels.append(pixels_row)  
-    
-    return np.array(image_pixels)
 
 
 def count_difference_with_step(image1, image2, step=101):
@@ -63,6 +45,31 @@ def count_difference_with_step(image1, image2, step=101):
     A = 255 * (image_pixels - min)//(max-min)
     B = np.reshape(A.astype(int), (math.floor(i_num/step), -1))
     return B
+
+
+def use_cv_match_template(image1, image2):
+    ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
+            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
+
+    method = eval('cv2.TM_CCOEFF')
+    res = cv2.matchTemplate(image2,image1,method)
+    w = image2.shape[1]
+    h = image2.shape[0]
+
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    cv2.rectangle(image2,top_left, bottom_right, 255, 2)
+    plt.subplot(121),plt.imshow(res,cmap = 'gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(image2,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.suptitle(method)
+    plt.show()
 
 
 def create_convolution(image1, image2, step):
@@ -106,13 +113,14 @@ if __name__ == "__main__":
 
     # pixels = count_difference(image1, image2)
     # pixels = create_convolution(image1, image2, PIXELS_STEP)
-    pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
+    use_cv_match_template(image1, image2)
+    # pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
-    # pixels = create_image(pixels)
+    # # pixels = create_image(pixels)
     
-    print(f"SECONDS SPENT: {time.time() - init_time}")
-    # show image
-    cv2.imshow('result', pixels.astype(np.uint8))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
+    # print(f"SECONDS SPENT: {time.time() - init_time}")
+    # # show image
+    # cv2.imshow('result', pixels.astype(np.uint8))
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    # # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
