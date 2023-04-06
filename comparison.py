@@ -5,31 +5,11 @@ import numpy as np
 import time, datetime
 import math
 
-IMAGE_1_PATH = 'photos/1_yandex.png'
-IMAGE_2_PATH = 'photos/3_.png'
+IMAGE_1_PATH = 'photos/maps/1_yandex.png'
+IMAGE_2_PATH = 'photos/pictures/3_.png'
 PIXELS_STEP = 101
 
 SHAPE = 10
-
-
-def count_difference(image1, image2):
-    width, height = count_shapes(image1, image2)
-
-    image_pixels = []
-
-    #TODO: write normal cycle
-    for i_num in range(height):
-        pixels_row = []
-        for j_num in range(width):
-            sum = 0
-            for i in range(image2.shape[0]):
-                for j in range(image2.shape[1]):
-                    sum += 255 - abs(image1.item((i_num*image2.shape[0] + i, j_num*image2.shape[1] + j)) - image2.item((i, j))) 
-            pixel = sum / (image2.shape[0] * image2.shape[1])
-            pixels_row.append(round(pixel))      
-        image_pixels.append(pixels_row)  
-    
-    return np.array(image_pixels)
 
 
 def count_difference_with_step(image1, image2, step=101):
@@ -63,6 +43,14 @@ def count_difference_with_step(image1, image2, step=101):
     A = 255 * (image_pixels - min)//(max-min)
     B = np.reshape(A.astype(int), (math.floor(i_num/step), -1))
     return B
+
+
+def use_cv_match_template(image1, image2):
+    ''' meth = 'cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
+            'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED'    '''
+
+    method = eval('cv.TM_CCOEFF')
+    res = cv2.matchTemplate(image2,image1,method)
 
 
 def create_convolution(image1, image2, step):
@@ -115,4 +103,4 @@ if __name__ == "__main__":
     cv2.imshow('result', pixels.astype(np.uint8))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    # cv2.imwrite(f'photos/result_{SHAPE}.png', pixels)
+    # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
