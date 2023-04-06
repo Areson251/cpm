@@ -4,10 +4,12 @@ import cv2
 import numpy as np
 import time, datetime
 import math
+from matplotlib import pyplot as plt
 
-IMAGE_1_PATH = 'photos/maps/1_yandex.png'
-IMAGE_2_PATH = 'photos/pictures/3_.png'
-PIXELS_STEP = 101
+
+IMAGE_1_PATH = 'photos/maps/yandex.jpg'
+IMAGE_2_PATH = 'photos/pictures/g_cropped.jpg'
+PIXELS_STEP = 51
 
 SHAPE = 10
 
@@ -46,11 +48,28 @@ def count_difference_with_step(image1, image2, step=101):
 
 
 def use_cv_match_template(image1, image2):
-    ''' meth = 'cv.TM_CCOEFF', 'cv.TM_CCOEFF_NORMED', 'cv.TM_CCORR',
-            'cv.TM_CCORR_NORMED', 'cv.TM_SQDIFF', 'cv.TM_SQDIFF_NORMED'    '''
+    ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
+            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
 
-    method = eval('cv.TM_CCOEFF')
+    method = eval('cv2.TM_CCOEFF')
     res = cv2.matchTemplate(image2,image1,method)
+    w = image2.shape[1]
+    h = image2.shape[0]
+
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+    bottom_right = (top_left[0] + w, top_left[1] + h)
+    cv2.rectangle(image2,top_left, bottom_right, 255, 2)
+    plt.subplot(121),plt.imshow(res,cmap = 'gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(image2,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.suptitle(method)
+    plt.show()
 
 
 def create_convolution(image1, image2, step):
@@ -94,13 +113,14 @@ if __name__ == "__main__":
 
     # pixels = count_difference(image1, image2)
     # pixels = create_convolution(image1, image2, PIXELS_STEP)
-    pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
+    use_cv_match_template(image1, image2)
+    # pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
-    # pixels = create_image(pixels)
+    # # pixels = create_image(pixels)
     
-    print(f"SECONDS SPENT: {time.time() - init_time}")
-    # show image
-    cv2.imshow('result', pixels.astype(np.uint8))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
+    # print(f"SECONDS SPENT: {time.time() - init_time}")
+    # # show image
+    # cv2.imshow('result', pixels.astype(np.uint8))
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    # # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
