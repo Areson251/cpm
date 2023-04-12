@@ -1,17 +1,4 @@
-# from turtle import width
-from ctypes.wintypes import SHORT
-import cv2
-import numpy as np
-import time, datetime
-import math
-from matplotlib import pyplot as plt
-
-
-IMAGE_1_PATH = 'photos/maps/yandex.jpg'
-IMAGE_2_PATH = 'photos/pictures/g_cropped.jpg'
-PIXELS_STEP = 51
-
-SHAPE = 10
+from references import *
 
 
 def count_difference_with_step(image1, image2, step=101):
@@ -47,14 +34,12 @@ def count_difference_with_step(image1, image2, step=101):
     return B
 
 
-def use_cv_match_template(image1, image2):
-    ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
-            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
-
-    method = eval('cv2.TM_CCOEFF')
-    res = cv2.matchTemplate(image2,image1,method)
-    w = image2.shape[1]
-    h = image2.shape[0]
+def use_cv_match_template(template, img, method):
+    res = cv2.matchTemplate(img, template, method)
+    print(argrelextrema(res, np.greater))
+    # print(res)
+    w = img.shape[1]
+    h = img.shape[0]
 
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
     # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
@@ -63,13 +48,8 @@ def use_cv_match_template(image1, image2):
     else:
         top_left = max_loc
     bottom_right = (top_left[0] + w, top_left[1] + h)
-    cv2.rectangle(image2,top_left, bottom_right, 255, 2)
-    plt.subplot(121),plt.imshow(res,cmap = 'gray')
-    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(image2,cmap = 'gray')
-    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
-    plt.suptitle(method)
-    plt.show()
+
+    return res, top_left, bottom_right
 
 
 def create_convolution(image1, image2, step):
@@ -104,6 +84,16 @@ def create_image(pixels):
     return pixels
 
 
+def show_result(img, method=None, top_left=None, bottom_right=None):
+    cv2.rectangle(img,top_left, bottom_right, 255, 2)
+    plt.subplot(121),plt.imshow(img,cmap = 'gray')
+    plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(img,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.suptitle(method)
+    plt.show()
+
+
 if __name__ == "__main__":
     init_time = time.time()
 
@@ -113,7 +103,13 @@ if __name__ == "__main__":
 
     # pixels = count_difference(image1, image2)
     # pixels = create_convolution(image1, image2, PIXELS_STEP)
-    use_cv_match_template(image1, image2)
+
+    ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
+            'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
+    method = eval('cv2.TM_CCOEFF')
+    result, t_l, b_r = use_cv_match_template(image1, image2)
+    show_result(result, method, t_l, b_r)
+
     # pixels = count_difference_with_step(image1, image2, PIXELS_STEP)
 
     # # pixels = create_image(pixels)
