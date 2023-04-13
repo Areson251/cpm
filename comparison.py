@@ -11,7 +11,7 @@ def count_difference_with_step(image1, image2, step=101):
 
     #TODO: write normal cycle
     while i_num <= height:
-        pixels_row, j_num = [], 0
+        pixels_row, j_num = np.array([]), 0
         while j_num <= width:
             sum = 0
             for i in range(image2.shape[0]):
