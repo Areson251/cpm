@@ -19,13 +19,29 @@ def piece_of_map(map):
 
 
 def experiment():
-    crop_img = piece_of_map(image1)
-
     ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
             'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
     method = eval('cv2.TM_CCOEFF')
     for i in range(EXPERIMENT_COUNT):
-        result, t_l, b_r = use_cv_match_template(image1, crop_img, method)
+        crop_img = piece_of_map(image1)
+        result, t_l, b_r, minv, maxv = use_cv_match_template(image1, crop_img, method)
+
+        res_coppy = np.array(result).flatten()
+
+        extrema = argrelextrema(res_coppy, np.greater)
+        e = sorted(extrema[0], reverse=True)[0:5]
+
+        peaks, _ = find_peaks(res_coppy, distance=150)
+        print(i, e, peaks)
+
+        # plt.subplot(121),plt.imshow(result,cmap = 'gray')
+        # plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
+        # plt.subplot(122),plt.imshow(image1,cmap = 'gray')
+        # plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+        # plt.suptitle(method)
+
+        # plt.show()
+
 
 
 if __name__ == "__main__":

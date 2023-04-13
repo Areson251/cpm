@@ -36,7 +36,6 @@ def count_difference_with_step(image1, image2, step=101):
 
 def use_cv_match_template(template, img, method):
     res = cv2.matchTemplate(img, template, method)
-    print(argrelextrema(res, np.greater))
     # print(res)
     w = img.shape[1]
     h = img.shape[0]
@@ -49,7 +48,7 @@ def use_cv_match_template(template, img, method):
         top_left = max_loc
     bottom_right = (top_left[0] + w, top_left[1] + h)
 
-    return res, top_left, bottom_right
+    return res, top_left, bottom_right, min_val, max_val
 
 
 def create_convolution(image1, image2, step):

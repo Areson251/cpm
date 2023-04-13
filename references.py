@@ -6,7 +6,7 @@ import time, datetime
 import math
 import random
 from matplotlib import pyplot as plt
-from scipy.signal import argrelextrema
+from scipy.signal import argrelextrema, find_peaks
 from comparison import *
 
 EXPERIMENT_COUNT = 30
