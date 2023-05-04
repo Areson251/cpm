@@ -1,4 +1,20 @@
-from references import *
+# from turtle import width
+from ctypes.wintypes import SHORT
+import cv2
+import numpy as np
+import time, datetime
+import math
+import random
+from matplotlib import pyplot as plt
+from scipy.signal import argrelextrema, find_peaks
+from comparison import *
+
+EXPERIMENT_COUNT = 30
+IMAGE_1_PATH = 'photos/maps/yandex.jpg'
+IMAGE_2_PATH = 'photos/pictures/g_cropped.jpg'
+PIXELS_STEP = 51
+MAP_SLICE = 501
+SHAPE = 10
 
 
 def count_difference_with_step(image1, image2, step=101):
@@ -34,7 +50,7 @@ def count_difference_with_step(image1, image2, step=101):
     return B
 
 
-def use_cv_match_template(template, img, method):
+def use_cv_match_template(img, template, method):
     res = cv2.matchTemplate(img, template, method)
     # print(res)
     w = img.shape[1]
@@ -47,6 +63,9 @@ def use_cv_match_template(template, img, method):
     else:
         top_left = max_loc
     bottom_right = (top_left[0] + w, top_left[1] + h)
+
+    cv2.rectangle(res, top_left, (top_left[0] + template.shape[0], top_left[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
+    cv2.imshow('result_window', res)
 
     return res, top_left, bottom_right, min_val, max_val
 
@@ -83,11 +102,12 @@ def create_image(pixels):
     return pixels
 
 
-def show_result(img, method=None, top_left=None, bottom_right=None):
-    cv2.rectangle(img,top_left, bottom_right, 255, 2)
-    plt.subplot(121),plt.imshow(img,cmap = 'gray')
+def show_result(result=None, img=None, crop_img=None, method=None, top_left=None, bottom_right=None):
+    plt.subplot(221),plt.imshow(result,cmap = 'gray')
     plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(img,cmap = 'gray')
+    plt.subplot(222),plt.imshow(img,cmap = 'gray')
+    plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
+    plt.subplot(224),plt.imshow(crop_img,cmap = 'gray')
     plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
     plt.suptitle(method)
     plt.show()
