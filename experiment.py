@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
 from comparison import *
 
-EXPERIMENT_COUNT = 31
+EXPERIMENT_COUNT = 1
 IMAGE_1_PATH = 'photos/maps/yandex.jpg'
 IMAGE_2_PATH = 'photos/maps/google.jpg'
 PIXELS_STEP = 51
@@ -39,20 +39,22 @@ def piece_of_map(img):
 def peaks(img):
     res_coppy = np.array(img).flatten()
 
+    w, h = img.shape[1], img.shape[0], 
+
     # extrema = argrelextrema(res_coppy, np.greater)
     # e = sorted(extrema[0], reverse=True)[0:5]
 
-    peaks, _ = find_peaks(res_coppy, distance=300)
-    y_res = np.array([x for x in range(len(res_coppy))])
+    peaks, _ = find_peaks(res_coppy, distance=30000)
+    coords = [(peak%w, peak//w) for peak in peaks]
     # print(e, peaks)
 
-    plt.scatter(res_coppy, y_res)
-
-    plt.plot(peaks, res_coppy[peaks], "x")
-
+    # y_res = np.array([x for x in range(len(res_coppy))])
+    # plt.plot(y_res, res_coppy)
+    # plt.plot(peaks, res_coppy[peaks], "x")
     # plt.plot(np.zeros_like(res_coppy), "--", color="gray")
+    # plt.show()
 
-    plt.show()
+    return coords
 
 
 def experiment():
@@ -70,15 +72,15 @@ def experiment():
             print("ERROR")
             error_count+=1
 
-    print(f"from {EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
-    print(f"{round((EXPERIMENT_COUNT-error_count)/EXPERIMENT_COUNT*100, 2)}% true")
-
-        # peaks(result)
+        peaks_coords = peaks(result)
 
         # cv2.imwrite(f'photos/results/result.png', result)
         # plt.imshow(result,cmap = 'gray')
         # plt.show()
         # show_result(result, img, crop_img, method)
+
+    print(f"from {EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
+    print(f"{round((EXPERIMENT_COUNT-error_count)/EXPERIMENT_COUNT*100, 2)}% true")
 
 
 if __name__ == "__main__":

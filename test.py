@@ -1,17 +1,16 @@
-# import the necessary packages
-from imutils import contours
-from skimage import measure
-import numpy as np
-import argparse
-import imutils
-import cv2
-# construct the argument parse and parse the arguments
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--image", required=True,
-# 	help="path to the image file")
-# args = vars(ap.parse_args())
+import kivy
+kivy.require('1.0.7')
 
-# load the image, convert it to grayscale, and blur it
-image = cv2.imread(args["image"])
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (11, 11), 0)
+from kivy.app import App
+from kivy.uix.button import Button
+
+
+class TestApp(App):
+
+    def build(self):
+        # return a Button() as a root widget
+        return Button(text='hello world')
+
+
+if __name__ == '__main__':
+    TestApp().run()
