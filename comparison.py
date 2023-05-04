@@ -53,8 +53,8 @@ def count_difference_with_step(image1, image2, step=101):
 def use_cv_match_template(img, template, method):
     res = cv2.matchTemplate(img, template, method)
     # print(res)
-    w = img.shape[1]
-    h = img.shape[0]
+    w = template.shape[1]
+    h = template.shape[0]
 
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
     # If the method is TM_SQDIFF or TM_SQDIFF_NORMED, take minimum
@@ -63,9 +63,6 @@ def use_cv_match_template(img, template, method):
     else:
         top_left = max_loc
     bottom_right = (top_left[0] + w, top_left[1] + h)
-
-    cv2.rectangle(res, top_left, (top_left[0] + template.shape[0], top_left[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
-    cv2.imshow('result_window', res)
 
     return res, top_left, bottom_right, min_val, max_val
 
@@ -138,4 +135,4 @@ if __name__ == "__main__":
     # cv2.imshow('result', pixels.astype(np.uint8))
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    # # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
+    # cv2.imwrite(f'photos/results/result_{SHAPE}.png', pixels)
