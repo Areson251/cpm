@@ -65,8 +65,6 @@ def use_cv_match_template(img, template, method):
     bottom_right = (top_left[0] + w, top_left[1] + h)
 
     # cv2.rectangle(res, top_left, (top_left[0] + template.shape[0], top_left[1] + template.shape[1]), (0,0,0), 2, 8, 0 )
-    norm = np.zeros((800,800))
-    res = cv2.normalize(res,  norm, 0, 255, cv2.NORM_MINMAX)
     # res = np.around(res)
 
     # cv2.imshow('result_window', res)

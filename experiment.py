@@ -9,6 +9,12 @@ from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
 from comparison import *
 
+
+import scipy
+import scipy.ndimage as ndimage
+import matplotlib.pyplot as plt
+
+
 EXPERIMENT_COUNT = 1
 IMAGE_1_PATH = 'photos/maps/yandex.jpg'
 IMAGE_2_PATH = 'photos/maps/google.jpg'
@@ -36,25 +42,34 @@ def piece_of_map(img):
     return cropped_image, image, (top_left, bottom_right)
 
 
-def peaks(img):
-    res_coppy = np.array(img).flatten()
+def find_extrema(data):
+    neighborhood_size = 100
+    threshold = 0.01
 
-    w, h = img.shape[1], img.shape[0], 
+    # data = scipy.misc.imread(fname)
 
-    # extrema = argrelextrema(res_coppy, np.greater)
-    # e = sorted(extrema[0], reverse=True)[0:5]
+    data_max = ndimage.maximum_filter(data, neighborhood_size)
+    maxima = (data == data_max)
+    data_min = ndimage.minimum_filter(data, neighborhood_size)
+    diff = ((data_max - data_min) > threshold)
+    maxima[diff == 0] = 0
 
-    peaks, _ = find_peaks(res_coppy, distance=30000)
-    coords = [(peak%w, peak//w) for peak in peaks]
-    # print(e, peaks)
-
-    # y_res = np.array([x for x in range(len(res_coppy))])
-    # plt.plot(y_res, res_coppy)
-    # plt.plot(peaks, res_coppy[peaks], "x")
-    # plt.plot(np.zeros_like(res_coppy), "--", color="gray")
+    labeled, num_objects = ndimage.label(maxima)
+    slices = ndimage.find_objects(labeled)
+    x, y = [], []
+    extrema = {}
+    for dy,dx in slices:
+        x_center = (dx.start + dx.stop - 1)/2
+        x.append(x_center)
+        y_center = (dy.start + dy.stop - 1)/2    
+        y.append(y_center)
+        # extrema{data[x_center, y_center]} = (x_center, y_center)
+        # print(type(x_center),type(y_center))
+    
+    # plt.imshow(data)
+    # plt.plot(x, y, "rx")
     # plt.show()
-
-    return coords
+    return [x,y]
 
 
 def experiment():
@@ -71,8 +86,7 @@ def experiment():
         if coords[0] != t_l:
             print("ERROR")
             error_count+=1
-
-        peaks_coords = peaks(result)
+        extrema = find_extrema(result)
 
         # cv2.imwrite(f'photos/results/result.png', result)
         # plt.imshow(result,cmap = 'gray')
