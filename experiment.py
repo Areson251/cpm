@@ -17,7 +17,7 @@ from imageData import ImageData
 
 
 class Experiment:
-    def __init__(self, img_path1, img_path2, map_slice, exp_count, extrema_count):
+    def __init__(self, img_path1, img_path2, map_slice, exp_count, extrema_count, degree=0):
         self.IMAGE_1_PATH = img_path1
         self.IMAGE_2_PATH = img_path2
         self.EXPERIMENT_COUNT = exp_count
@@ -25,6 +25,7 @@ class Experiment:
         self.MAP_SLICE = map_slice
         self.SHAPE = 10
         self.EXTREMA_COUNT = extrema_count
+        self.DEGREE = degree
         self.method = 'cv2.TM_CCOEFF_NORMED'
         ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
                 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
@@ -45,7 +46,9 @@ class Experiment:
         for i in range(self.EXPERIMENT_COUNT):
             img1_coppy = self.image1.copy()
             img2_coppy = self.image2.copy()
-            img2_coppy, coords = self.data.piece_of_map(img2_coppy)
+
+            img2_coppy = self.data.rotate_img(img2_coppy, self.DEGREE)
+            img2_coppy, coords = self.data.piece_of_map(img2_coppy, 0)
 
             result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy, img2_coppy, self.method_num)  # match images
 
@@ -59,7 +62,7 @@ class Experiment:
             # plt.imshow(result,cmap = 'gray')
             # plt.show()
             # show_result(result, img, crop_img, self.method)
-            
+
         print(y_indexes)
         plt.scatter(x_indexes, y_indexes)
         plt.show()

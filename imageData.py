@@ -43,17 +43,17 @@ class ImageData:
 
     def rotate_img(self, img, degree):
         rotated = imutils.rotate_bound(img, degree)
-        cv2.imshow("Rotated by 45 Degrees", rotated)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows() 
+        # cv2.imshow(f"Rotated by {degree} Degrees", rotated)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows() 
         return rotated
     
-    def piece_of_map(self, img):
+    def piece_of_map(self, img, border):
         map = img.copy()
         max_width = map.shape[1]
         max_hight = map.shape[0]
-        left_w = random.randint(0, max_width - self.MAP_SLICE) 
-        left_h = random.randint(0, max_hight - self.MAP_SLICE) 
+        left_w = random.randint(border, max_width - border - self.MAP_SLICE) 
+        left_h = random.randint(border, max_hight - border - self.MAP_SLICE) 
         self.coords = (left_w, left_h)
         bottom_right = (self.coords[0] + self.MAP_SLICE, self.coords[1] + self.MAP_SLICE)
         # print(top_left, bottom_right)
