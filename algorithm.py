@@ -7,7 +7,7 @@ import math
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
-from comparison import *
+from algorithm import *
 
 EXPERIMENT_COUNT = 30
 IMAGE_1_PATH = 'photos/maps/yandex.jpg'

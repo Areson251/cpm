@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys 
 
-import comparison
+import algorithm
 
 
 class AlgoProcessing(QMainWindow):
@@ -39,7 +39,7 @@ class AlgoProcessing(QMainWindow):
     
     def start_algo(self, img, map, algo=None):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)        
-        self.hot_map = comparison.count_difference_with_step(map, gray)
+        self.hot_map = algorithm.count_difference_with_step(map, gray)
         self.hot_map = np.array(self.hot_map, dtype='uint8')
         width = int(self.hot_map.shape[1] * 38)
         height = int(self.hot_map.shape[0] * 38)
