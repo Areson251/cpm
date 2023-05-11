@@ -20,8 +20,9 @@ from imageData import ImageData
 if __name__ == "__main__":
     IMAGE_1_PATH = 'photos/maps/yandex.jpg'
     IMAGE_2_PATH = 'photos/maps/google.jpg'
+    TEMPLATE_COUNT = 10
     MAP_SLICE = 301
     EXPERIMENT_COUNT = 31
-    EXTREMA_COUNT = 5
-    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT)
+    EXTREMA_COUNT = 10
+    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT)
     experiment.experiment()

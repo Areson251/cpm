@@ -3,7 +3,7 @@ from math import sqrt
 import cv2
 import numpy as np
 import time, datetime
-import math
+from  math import sin, cos
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
@@ -46,6 +46,23 @@ class ImageData:
         # cv2.imshow(f"Rotated by {degree} Degrees", rotated)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows() 
+        a_cathetus = abs(self.MAP_SLICE * sin(degree))
+        b_cathetus = abs(self.MAP_SLICE * cos(degree))
+        xmin = math.ceil(a_cathetus * b_cathetus / self.MAP_SLICE)
+
+        i = 0
+        for x in rotated:
+            if x[0]:
+                print(i)
+                break
+            i+=1
+
+        # image = cv2.rectangle(rotated, (xmin, i), (xmin+self.MAP_SLICE, i+self.MAP_SLICE), 255, 2)
+        # # cropped_image = img[i:i+self.MAP_SLICE, xmin:xmin+self.MAP_SLICE]
+        # cv2.imshow("cropped", image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows() 
+
         return rotated
     
     def piece_of_map(self, img, border):
@@ -71,3 +88,8 @@ class ImageData:
 
 if __name__ == "__main__":
     data = ImageData()
+    IMAGE_1_PATH = 'photos/maps/yandex.jpg'
+    IMAGE_2_PATH = 'photos/maps/google.jpg'
+    MAP_SLICE = 301
+    data.start_preprocessing(IMAGE_1_PATH, IMAGE_2_PATH, MAP_SLICE)
+    res = data.rotate_img(data.image1, 30)
