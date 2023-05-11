@@ -3,7 +3,7 @@ from math import sqrt
 import cv2
 import numpy as np
 import time, datetime
-from  math import sin, cos
+from  math import sin, cos, radians
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
@@ -46,41 +46,63 @@ class ImageData:
         # cv2.imshow(f"Rotated by {degree} Degrees", rotated)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows() 
-        a_cathetus = abs(self.MAP_SLICE * sin(degree))
-        b_cathetus = abs(self.MAP_SLICE * cos(degree))
-        xmin = math.ceil(a_cathetus * b_cathetus / self.MAP_SLICE)
+        xmin = math.ceil(self.MAP_SLICE * abs(sin(radians(degree)) * cos(radians(degree))))
 
-        i = 0
-        for x in rotated:
-            if x[0]:
-                print(i)
+        i, yfirst = 0, 0
+        for x in rotated:  # find ymax for current xmin
+            if x[xmin]:
+                yfirst = i
                 break
             i+=1
+        # print(kol)
+        # image = cv2.rectangle(rotated, (xmin, yfirst), (xmin+self.MAP_SLICE, yfirst+self.MAP_SLICE), 255, 2)
+        # cropped_image = rotated[yfirst:yfirst+self.MAP_SLICE, xmin:xmin+self.MAP_SLICE]
 
-        # image = cv2.rectangle(rotated, (xmin, i), (xmin+self.MAP_SLICE, i+self.MAP_SLICE), 255, 2)
-        # # cropped_image = img[i:i+self.MAP_SLICE, xmin:xmin+self.MAP_SLICE]
-        # cv2.imshow("cropped", image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows() 
+        # print(f"FUNCTION: rotate_img {xmin} {yfirst}")
+        # plt.imshow(rotated,cmap = 'gray')
+        # plt.plot(xmin, yfirst, "rx")
+        # plt.show()
 
-        return rotated
+        # plt.imshow(image,cmap = 'gray')
+        # plt.show()
+
+        return rotated, xmin
     
-    def piece_of_map(self, img, border):
-        map = img.copy()
-        max_width = map.shape[1]
-        max_hight = map.shape[0]
-        left_w = random.randint(border, max_width - border - self.MAP_SLICE) 
-        left_h = random.randint(border, max_hight - border - self.MAP_SLICE) 
+    def piece_of_map(self, img, xmin):
+        source_img = img.copy()
+        max_width = source_img.shape[1]
+        max_hight = source_img.shape[0]
+        left_w = random.randint(xmin, max_width - xmin - self.MAP_SLICE) 
+
+        i, ymin, ymax = 0, 0, max_hight
+        for x in source_img:  # find ymin and ymax for current xmin
+            if x[left_w]:
+                if not ymin:
+                    ymin = i
+                ymax = i
+            i+=1
+        i=0
+
+        # print(f"FUNCTION: piece_of_map {xmin} {ymin} {ymax}")
+        # plt.imshow(source_img,cmap = 'gray')
+        # plt.plot(xmin, ymin, "rx")
+        # plt.plot(xmin, ymax, "rx")
+        # plt.show()
+
+
+        left_h = random.randint(ymin, ymax - self.MAP_SLICE) 
         self.coords = (left_w, left_h)
         bottom_right = (self.coords[0] + self.MAP_SLICE, self.coords[1] + self.MAP_SLICE)
         # print(top_left, bottom_right)
-        image = cv2.rectangle(map , self.coords, bottom_right, 255, 2)
-        self.cropped_image = map[left_h:left_h+self.MAP_SLICE, left_w:left_w+self.MAP_SLICE]
+        image = cv2.rectangle(source_img , self.coords, bottom_right, 255, 2)
+        self.cropped_image = source_img[left_h:left_h+self.MAP_SLICE, left_w:left_w+self.MAP_SLICE]
 
-        # show_result(cropped_image)
-        # cv2.imshow("cropped", cropped_image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows() 
+        # print(self.coords, bottom_right)
+        # plt.imshow(image,cmap = 'gray')
+        # plt.show()
+
+        # plt.imshow(self.cropped_image,cmap = 'gray')
+        # plt.show()
 
         return self.cropped_image, self.coords
 
@@ -92,4 +114,4 @@ if __name__ == "__main__":
     IMAGE_2_PATH = 'photos/maps/google.jpg'
     MAP_SLICE = 301
     data.start_preprocessing(IMAGE_1_PATH, IMAGE_2_PATH, MAP_SLICE)
-    res = data.rotate_img(data.image1, 30)
+    res = data.rotate_img(data.image1, 60)

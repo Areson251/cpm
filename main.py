@@ -24,5 +24,6 @@ if __name__ == "__main__":
     MAP_SLICE = 301
     EXPERIMENT_COUNT = 31
     EXTREMA_COUNT = 10
-    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT)
+    MAX_DEGREE = 30
+    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT, MAX_DEGREE)
     experiment.experiment()

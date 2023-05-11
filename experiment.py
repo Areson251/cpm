@@ -26,12 +26,14 @@ class Experiment:
         self.MAP_SLICE = map_slice
         self.SHAPE = 10
         self.EXTREMA_COUNT = extrema_count
-        self.DEGREE = degree
+        self.MAX_DEGREE = degree
+        self.DEGREE = 0
         self.method = 'cv2.TM_CCOEFF_NORMED'
         ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
                 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
         self.image1 = None
-        self.image2 = None    
+        self.image2 = None   
+        self.xmin = 0 
         
         self.data = ImageData()   
 
@@ -42,25 +44,31 @@ class Experiment:
         self.image2 = self.data.image2
 
         self.method_num = eval(self.method)
-        x_indexes, y_indexes = [x for x in range(1, self.EXPERIMENT_COUNT+1)], []
+        x_indexes, y_indexes = [x for x in range(1, self.MAX_DEGREE+1)], []
         error_count=0
-        for i in range(self.EXPERIMENT_COUNT):
+        for i in range(self.MAX_DEGREE):
+            print(f"ITERATION: {i}")
             img1_coppy = self.image1.copy()
+            img2_coppy = self.image2.copy()
             result_list = []
             true_predicted_count = 0
-            # img2_coppy = self.data.rotate_img(img2_coppy, self.DEGREE)
+            img2_rotated, self.xmin = self.data.rotate_img(img2_coppy, self.DEGREE)
 
             for j in range(self.TEMPLATE_COUNT):
-                img2_coppy = self.image2.copy()
-                img2_coppy, coords = self.data.piece_of_map(img2_coppy, 0)
-                result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy, img2_coppy, self.method_num)  # match images
+                print(f"TEMPLATE {j}")
+                img1_coppy_coppy = img1_coppy.copy()
+                img2_rotated_coppy = img2_rotated.copy()
+                img2_rotated_coppy, coords = self.data.piece_of_map(img2_rotated_coppy, self.xmin)
+                result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy_coppy, img2_rotated_coppy, self.method_num)  # match images
                 result_list.append(result)
-                extrema = self.find_extrema(result, self.EXTREMA_COUNT) # find extrema
+                extrema = self.find_extrema(result, self.EXTREMA_COUNT, i, j) # find extrema
                 idx = self.search_right_extremum(coords, extrema)
                 if idx:
                     true_predicted_count +=1 
                 # y_indexes.append(idx)
             true_predicted = true_predicted_count / self.TEMPLATE_COUNT * 100
+            y_indexes.append(true_predicted)
+            self.DEGREE += 1
             
 
             # cv2.imwrite(f'photos/results/result.png', result)
@@ -68,17 +76,20 @@ class Experiment:
             # plt.show()
             # show_result(result, img, crop_img, self.method)
 
-        print(true_predicted)
-        plt.scatter(x_indexes, y_indexes)
+        # print(f"TRUE PREDICTED: {true_predicted}")
+        print(x_indexes, '\n', y_indexes)
+        plt.plot(x_indexes, y_indexes)
         plt.show()
-        print(f"from {self.EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
-        print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
+        # print(f"from {self.EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
+        # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
 
-    def find_extrema(self, data, count):
+    def find_extrema(self, res, count, i, j):
         neighborhood_size = 100
         threshold = 0.05
 
         # data = scipy.misc.imread(fname)
+
+        data = res.copy()
 
         data_max = ndimage.maximum_filter(data, neighborhood_size)
         maxima = (data == data_max)
@@ -99,12 +110,12 @@ class Experiment:
             # print(type(x_center),type(y_center))
         
         extrema = sorted(extrema.items(),  reverse=True)[:count]
-        print(extrema)
         extrema = [x[1] for x in extrema]
 
-        # plt.imshow(data,cmap = 'gray')
+        # plt.imshow(data,cmap = 'gray')   #   THIS PLOT SHOWS FALSE INFORMATION!!!!!!!!!!!!!!!
         # plt.plot(x, y, "rx")
-        # plt.show()
+        # # plt.show()
+        # plt.savefig(f'photos/results/exp/{i}_{j}.png')
         return extrema
 
     def search_right_extremum(self, coords, extrema):
