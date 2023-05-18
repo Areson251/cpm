@@ -78,6 +78,7 @@ class Experiment:
 
         # print(f"TRUE PREDICTED: {true_predicted}")
         print(x_indexes, '\n', y_indexes)
+        print(f"SECONDS SPENT: {time.time() - self.init_time}")
         plt.plot(x_indexes, y_indexes)
         plt.show()
         # print(f"from {self.EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
