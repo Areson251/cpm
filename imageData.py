@@ -25,7 +25,7 @@ class ImageData:
         self.coords = ()
         self.cropped_image = None
 
-    def start_preprocessing(self, path1, path2, slice):
+    def start_preprocessing(self, path1, path2, slice=None):
         self.IMAGE_1_PATH = path1
         self.IMAGE_2_PATH = path2
         self.MAP_SLICE = slice
@@ -48,12 +48,13 @@ class ImageData:
         # cv2.destroyAllWindows() 
         xmin = math.ceil(self.MAP_SLICE * abs(sin(radians(degree)) * cos(radians(degree))))
 
-        i, yfirst = 0, 0
-        for x in rotated:  # find ymax for current xmin
-            if x[xmin]:
-                yfirst = i
-                break
-            i+=1
+        # i, yfirst = 0, 0
+        # for x in rotated:  # find ymax for current xmin
+        #     if x[xmin]:
+        #         yfirst = i
+        #         break
+        #     i+=1
+
         # print(kol)
         # image = cv2.rectangle(rotated, (xmin, yfirst), (xmin+self.MAP_SLICE, yfirst+self.MAP_SLICE), 255, 2)
         # cropped_image = rotated[yfirst:yfirst+self.MAP_SLICE, xmin:xmin+self.MAP_SLICE]

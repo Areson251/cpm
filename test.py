@@ -172,13 +172,19 @@ if __name__ == "__main__":
     IMAGE_1_PATH = 'photos/maps/yandex.jpg'
     IMAGE_2_PATH = 'photos/maps/google.jpg'
     MAP_SLICE = 301
+
+    img1 = 'photos/maps/1000_x50_1.jpg'
+    template = 'photos/pictures/10300014-Mirrored.jpg'
+
     data.start_preprocessing(IMAGE_1_PATH, IMAGE_2_PATH, MAP_SLICE)
+    # data.start_preprocessing(img1, template, MAP_SLICE)
 
     for i in range(1):
-        img2_rotated, xmin = data.rotate_img(data.image2.copy(), 15)
+        img2_rotated, xmin = data.rotate_img(data.image2.copy(), 0)
         photo, coords = data.piece_of_map(img2_rotated, xmin)
-        # original = data.image1[coords[1]:coords[1]+MAP_SLICE, coords[0]:coords[0]+MAP_SLICE]
+        original = data.image1[coords[1]:coords[1]+MAP_SLICE, coords[0]:coords[0]+MAP_SLICE]
         original = data.image1.copy()
+        # photo = data.image2.copy()
 
         fig, ax = plt.subplots(1,2,figsize=(18,9))
         ax[0].imshow(original,cmap = 'gray')
