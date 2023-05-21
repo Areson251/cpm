@@ -26,15 +26,16 @@ if __name__ == "__main__":
     EXTREMA_COUNT = 10
     MAX_DEGREE = 30
 
-    img1 = 'photos/maps/1000_x50_1.jpg'
-    template = 'photos/pictures/10300028.jpg'
-    method = eval('cv2.TM_CCOEFF_NORMED')
+    # img1 = 'photos/maps/1000_x50_1.jpg'
+    # template = 'photos/pictures/10300028.jpg'
+    # method = eval('cv2.TM_CCOEFF_NORMED')
 
-    data = ImageData()
-    data.start_preprocessing(img1, template)
+    # data = ImageData()
+    # data.start_preprocessing(img1, template)
 
-    res = use_cv_match_template(data.image1, data.image2, method)
-    show_result(res[0], data.image1, data.image2, method)
+    # res = use_cv_match_template(data.image1, data.image2, method)
+    # show_result(res[0], data.image1, data.image2, method)
 
-    # experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT, MAX_DEGREE)
-    # experiment.experiment()
+    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT, MAX_DEGREE)
+    # experiment.experiment_KORR()
+    experiment.experiment_SIFT()

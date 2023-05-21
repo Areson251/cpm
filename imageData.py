@@ -36,10 +36,8 @@ class ImageData:
     def read_img(self, path):
         print(path)
         img = cv2.imread(path,0)
-        # cv2.imshow("img", img)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
         return img
+
 
     def rotate_img(self, img, degree):
         rotated = imutils.rotate_bound(img, degree)
@@ -69,7 +67,22 @@ class ImageData:
 
         return rotated, xmin
     
-    def piece_of_map(self, img, xmin):
+
+    def piece_of_map(self, img, coords, shape):
+        source_img = img.copy()
+        bottom_right = (coords[0]+shape, coords[1]+shape)
+        cropped_image = source_img[coords[1]:coords[1]+shape, coords[0]:coords[0]+shape]
+        image = cv2.rectangle(source_img , coords, bottom_right, 255, 2)
+
+        # fig, ax = plt.subplots(1,2,figsize=(18,9))
+        # ax[0].imshow(image,cmap = 'gray')
+        # ax[1].imshow(cropped_image,cmap = 'gray')
+        # plt.show()
+
+        return cropped_image.copy(), image
+
+    
+    def random_piece_of_map(self, img, xmin):
         source_img = img.copy()
         max_width = source_img.shape[1]
         max_hight = source_img.shape[0]
@@ -84,7 +97,7 @@ class ImageData:
             i+=1
         i=0
 
-        # print(f"FUNCTION: piece_of_map {xmin} {ymin} {ymax}")
+        # print(f"FUNCTION: random_piece_of_map {xmin} {ymin} {ymax}")
         # plt.imshow(source_img,cmap = 'gray')
         # plt.plot(xmin, ymin, "rx")
         # plt.plot(xmin, ymax, "rx")

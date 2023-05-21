@@ -37,7 +37,8 @@ class Experiment:
         
         self.data = ImageData()   
 
-    def experiment(self):
+
+    def experiment_KORR(self):
         self.init_time = time.time()
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
         self.image1 = self.data.image1
@@ -58,7 +59,7 @@ class Experiment:
                 print(f"TEMPLATE {j}")
                 img1_coppy_coppy = img1_coppy.copy()
                 img2_rotated_coppy = img2_rotated.copy()
-                img2_rotated_coppy, coords = self.data.piece_of_map(img2_rotated_coppy, self.xmin)
+                img2_rotated_coppy, coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin)
                 result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy_coppy, img2_rotated_coppy, self.method_num)  # match images
                 result_list.append(result)
                 extrema = self.find_extrema(result, self.EXTREMA_COUNT, i, j) # find extrema
@@ -83,6 +84,7 @@ class Experiment:
         plt.show()
         # print(f"from {self.EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
         # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
+
 
     def find_extrema(self, res, count, i, j):
         neighborhood_size = 100
@@ -119,6 +121,7 @@ class Experiment:
         # plt.savefig(f'photos/results/exp/{i}_{j}.png')
         return extrema
 
+
     def search_right_extremum(self, coords, extrema):
         x, y = coords
         i=1
@@ -128,6 +131,25 @@ class Experiment:
             else: i+=1
         return 0
 
+
+    def experiment_SIFT(self, image1=None, image2=None, step=None):
+        self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
+        image1 = self.data.image1.copy()
+        image2 = self.data.image2.copy()
+
+        photo, coords = self.data.random_piece_of_map(image2, 0)
+        original_shape = self.data.MAP_SLICE * 2
+        step = self.data.MAP_SLICE
+        width = image1.shape[1] - photo.shape[1]
+        hight = image1.shape[0] - photo.shape[0]
+        i = 0
+        while i < hight:
+            j=0
+            while j < width:
+                original, map_pointed = self.data.piece_of_map(image1.copy(), (j, i), original_shape)
+                start_SIFT(original, photo, map_pointed)
+                j += step
+            i += step
 
 if __name__ == "__main__":
     experiment = Experiment()
