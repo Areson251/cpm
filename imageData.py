@@ -3,7 +3,7 @@ from math import sqrt
 import cv2
 import numpy as np
 import time, datetime
-from  math import sin, cos, radians
+from  math import sin, cos, radians, ceil   
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
@@ -44,7 +44,7 @@ class ImageData:
         # cv2.imshow(f"Rotated by {degree} Degrees", rotated)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows() 
-        xmin = math.ceil(self.MAP_SLICE * abs(sin(radians(degree)) * cos(radians(degree))))
+        xmin = ceil(self.MAP_SLICE * abs(sin(radians(degree)) * cos(radians(degree))))
 
         # i, yfirst = 0, 0
         # for x in rotated:  # find ymax for current xmin
@@ -70,16 +70,14 @@ class ImageData:
 
     def piece_of_map(self, img, coords, shape):
         source_img = img.copy()
-        bottom_right = (coords[0]+shape, coords[1]+shape)
         cropped_image = source_img[coords[1]:coords[1]+shape, coords[0]:coords[0]+shape]
-        image = cv2.rectangle(source_img , coords, bottom_right, 255, 2)
 
         # fig, ax = plt.subplots(1,2,figsize=(18,9))
         # ax[0].imshow(image,cmap = 'gray')
         # ax[1].imshow(cropped_image,cmap = 'gray')
         # plt.show()
 
-        return cropped_image.copy(), image
+        return cropped_image.copy()
 
     
     def random_piece_of_map(self, img, xmin):

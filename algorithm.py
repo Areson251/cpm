@@ -90,7 +90,7 @@ def use_cv_match_template(img, template, method):
     return res, top_left, bottom_right, min_val, max_val
 
 
-def start_SIFT(img1=None, img2=None, map=None):
+def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, map=None):
     descriptor_extractor = SIFT()
     print("STEP 1")
     descriptor_extractor.detect_and_extract(img1)
@@ -113,13 +113,15 @@ def start_SIFT(img1=None, img2=None, map=None):
     #                             cross_check=True)
     print("STEP 4")
 
+    # ------------------VISUALISATION------------------
+
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
 
     plt.gray()
 
     plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12)
     ax[0, 0].axis('off')
-    ax[0, 0].set_title("Original Image vs. Photo\n"
+    ax[0, 0].set_title("Map vs. Photo on board\n"
                     "(all keypoints and matches)")
 
     # plot_matches(ax[1, 0], img1, img3, keypoints1, keypoints3, matches13)
@@ -130,7 +132,7 @@ def start_SIFT(img1=None, img2=None, map=None):
     plot_matches(ax[0, 1], img1, img2, keypoints1, keypoints2, matches12[::15],
                 only_matches=True)
     ax[0, 1].axis('off')
-    ax[0, 1].set_title("Original Image vs. Photo\n"
+    ax[0, 1].set_title("Map vs. Photo on board\n"
                     "(subset of matches for visibility)")
 
     # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
@@ -139,11 +141,24 @@ def start_SIFT(img1=None, img2=None, map=None):
     # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
     #                 "(subset of matches for visibility)")
 
+    original_coords_br = (original_coords[0]+img1.shape[0], original_coords[1]+img1.shape[0])
+    map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
+
+    photo_coords_br = (photo_coords[0]+img2.shape[0], photo_coords[1]+img2.shape[0])
+    map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+
     ax[1, 0].imshow(map,cmap = 'gray')
     ax[1, 1].imshow(img1,cmap = 'gray')
 
+    ax[1, 0].axis('off')
+    ax[1, 0].set_title("Current photos")
+
+    ax[1, 1].axis('off')
+    ax[1, 1].set_title("Piece of map")
+
     plt.tight_layout()
     plt.show()
+    i=0
 
 
 def create_convolution(image1, image2, step):

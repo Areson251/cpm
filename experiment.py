@@ -86,6 +86,27 @@ class Experiment:
         # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
 
 
+    def experiment_SIFT(self, image1=None, image2=None, step=None):
+        self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
+        image1 = self.data.image1.copy()
+        image2 = self.data.image2.copy()
+
+        photo, photo_coords = self.data.random_piece_of_map(image2, 0)
+        original_shape = self.data.MAP_SLICE * 2
+        step = self.data.MAP_SLICE
+        width = image1.shape[1] - photo.shape[1]
+        hight = image1.shape[0] - photo.shape[0]
+        i = 0
+        while i < (hight):
+            j=0
+            while j < (width-step):
+                original_coords = (j, i)
+                original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
+                start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                j += step
+            i += step
+
+
     def find_extrema(self, res, count, i, j):
         neighborhood_size = 100
         threshold = 0.05
@@ -131,25 +152,6 @@ class Experiment:
             else: i+=1
         return 0
 
-
-    def experiment_SIFT(self, image1=None, image2=None, step=None):
-        self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
-        image1 = self.data.image1.copy()
-        image2 = self.data.image2.copy()
-
-        photo, coords = self.data.random_piece_of_map(image2, 0)
-        original_shape = self.data.MAP_SLICE * 2
-        step = self.data.MAP_SLICE
-        width = image1.shape[1] - photo.shape[1]
-        hight = image1.shape[0] - photo.shape[0]
-        i = 0
-        while i < hight:
-            j=0
-            while j < width:
-                original, map_pointed = self.data.piece_of_map(image1.copy(), (j, i), original_shape)
-                start_SIFT(original, photo, map_pointed)
-                j += step
-            i += step
 
 if __name__ == "__main__":
     experiment = Experiment()
