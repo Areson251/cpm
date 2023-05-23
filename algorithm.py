@@ -119,21 +119,33 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
 
     plt.gray()
 
-    plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12)
+    cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
     ax[0, 0].axis('off')
     ax[0, 0].set_title("Map vs. Photo on board\n"
                     "(all keypoints and matches)")
+    
+    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
+    for dots in cor: 
+        ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
+        ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
 
-    # plot_matches(ax[1, 0], img1, img3, keypoints1, keypoints3, matches13)
-    # ax[1, 0].axis('off')
-    # ax[1, 0].set_title("Original Image vs. Transformed Image\n"
-    #                 "(all keypoints and matches)")
+        l = sqrt((dots[0][0]-dots[1][0])*(dots[0][0]-dots[1][0])+(dots[0][1]-dots[1][1])*(dots[0][1]-dots[1][1]))
+        lens = length_hist['length']
+        counts = length_hist['count']
+        idx = np.where(lens == l)[0]
+        if not idx.size == 0:
+            length_hist[idx[0]] = (l, counts[idx[0]]+1)
+        else:
+            length_elem = np.array([(l, 1)], dtype=[('length', 'f4'), ('count', 'i4')])
+            length_hist = np.append(length_hist, length_elem)
 
-    plot_matches(ax[0, 1], img1, img2, keypoints1, keypoints2, matches12[::15],
-                only_matches=True)
-    ax[0, 1].axis('off')
-    ax[0, 1].set_title("Map vs. Photo on board\n"
-                    "(subset of matches for visibility)")
+    print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS")
+
+    ax[0, 1].bar(length_hist['length'], length_hist['count'])
+    # ax[0, 1].axis('off')
+    ax[0, 1].set_title("Vectors length histogram")
+    
+
 
     # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
     #             only_matches=True)
