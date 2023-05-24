@@ -102,7 +102,8 @@ class Experiment:
             while j < (width-step):
                 original_coords = (j, i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
-                start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                length_hist, degree_hist = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                
                 j += step
             i += step
 

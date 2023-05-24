@@ -3,7 +3,6 @@ from ctypes.wintypes import SHORT
 import cv2
 import numpy as np
 import time, datetime
-import math
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
@@ -11,11 +10,10 @@ from algorithm import *
 import pandas as pd 
 import numpy as np
 import glob
-import math
 from tqdm import tqdm
 from PIL import Image
 from IPython.display import clear_output
-from math import sin, cos
+from math import sin, cos, degrees
 from asift import Timer, image_resize, init_feature, filter_matches, affine_detect
 from multiprocessing.pool import ThreadPool
 from skimage import data
@@ -113,64 +111,84 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
     #                             cross_check=True)
     print("STEP 4")
 
-    # ------------------VISUALISATION------------------
-
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
-
-    plt.gray()
-
     cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
-    ax[0, 0].axis('off')
-    ax[0, 0].set_title("Map vs. Photo on board\n"
-                    "(all keypoints and matches)")
+
+    length_hist = np.array([], dtype=[('length', 'U10'), ('count', 'i4')])
+    degree_hist = np.array([], dtype=[('degree', 'U10'), ('count', 'i4')])
     
-    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
     for dots in cor: 
-        ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
-        ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
+        # ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
+        # ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
 
         l = sqrt((dots[0][0]-dots[1][0])*(dots[0][0]-dots[1][0])+(dots[0][1]-dots[1][1])*(dots[0][1]-dots[1][1]))
+        a = 180 - degrees(np.arccos((dots[0][0]-dots[1][0])/(l)))
+        l = str(round(l, 6))
+        a = str(round(a, 2))
         lens = length_hist['length']
-        counts = length_hist['count']
-        idx = np.where(lens == l)[0]
-        if not idx.size == 0:
-            length_hist[idx[0]] = (l, counts[idx[0]]+1)
+        l_counts = length_hist['count']
+        deg = degree_hist['degree']
+        a_counts = degree_hist['count']
+
+        l_idx = np.where(lens == l)[0]
+        if not l_idx.size == 0:
+            length_hist[l_idx[0]] = (l, l_counts[l_idx[0]]+1)
         else:
-            length_elem = np.array([(l, 1)], dtype=[('length', 'f4'), ('count', 'i4')])
+            length_elem = np.array([(l, 1)], dtype=[('length', 'U10'), ('count', 'i4')])
             length_hist = np.append(length_hist, length_elem)
 
+        a_idx = np.where(deg == a)[0]
+        if not a_idx.size == 0:
+            degree_hist[a_idx[0]] = (a, a_counts[a_idx[0]]+1)
+        else:
+            degree_elem = np.array([(a, 1)], dtype=[('degree', 'U10'), ('count', 'i4')])
+            degree_hist = np.append(degree_hist, degree_elem)
+
+    print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS")
     print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS")
 
-    ax[0, 1].bar(length_hist['length'], length_hist['count'])
-    # ax[0, 1].axis('off')
-    ax[0, 1].set_title("Vectors length histogram")
+    length_hist = np.sort(length_hist)
+    degree_hist = np.sort(degree_hist)
+
+    # ------------------VISUALISATION------------------
+
+    # fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
+
+    # plt.gray()
+
+    # cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
+    # ax[0, 0].axis('off')
+    # ax[0, 0].set_title("Map vs. Photo on board\n"
+    #                 "(all keypoints and matches)")
+
+    # ax[0, 1].bar(length_hist['length'], length_hist['count'])
+    # # ax[0, 1].axis('off')
+    # ax[0, 1].set_title("Vectors length histogram")
+
+    # ax[1, 1].bar(degree_hist['degree'], degree_hist['count'])
+    # # ax[1, 1].axis('off')
+    # ax[1, 1].set_title("Vectors degrees histogram")
     
+    # # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
+    # #             only_matches=True)
+    # # ax[1, 1].axis('off')
+    # # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
+    # #                 "(subset of matches for visibility)")
 
+    # original_coords_br = (original_coords[0]+img1.shape[0], original_coords[1]+img1.shape[0])
+    # map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
 
-    # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
-    #             only_matches=True)
-    # ax[1, 1].axis('off')
-    # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
-    #                 "(subset of matches for visibility)")
+    # photo_coords_br = (photo_coords[0]+img2.shape[0], photo_coords[1]+img2.shape[0])
+    # map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
 
-    original_coords_br = (original_coords[0]+img1.shape[0], original_coords[1]+img1.shape[0])
-    map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
+    # ax[1, 0].imshow(map,cmap = 'gray')
+    # ax[1, 0].axis('off')
+    # ax[1, 0].set_title("Current photos")
 
-    photo_coords_br = (photo_coords[0]+img2.shape[0], photo_coords[1]+img2.shape[0])
-    map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
-
-    ax[1, 0].imshow(map,cmap = 'gray')
-    ax[1, 1].imshow(img1,cmap = 'gray')
-
-    ax[1, 0].axis('off')
-    ax[1, 0].set_title("Current photos")
-
-    ax[1, 1].axis('off')
-    ax[1, 1].set_title("Piece of map")
-
-    plt.tight_layout()
-    plt.show()
-    i=0
+    # plt.tight_layout()
+    # plt.show()
+    # i=0
+    return length_hist, degree_hist
 
 
 def create_convolution(image1, image2, step):
