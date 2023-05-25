@@ -99,8 +99,8 @@ class Experiment:
         width = image1.shape[1] - photo.shape[1]
         hight = image1.shape[0] - photo.shape[0]
         it, coord_i = 0, 0
-        Ml_list, SDl_list, CVl_list, Md_list, SDd_list, CVd_list = [], [], [], [], [], []
-        a_Ml_list, a_SDl_list, a_CVl_list, a_Md_list, a_SDd_list, a_CVd_list = [], [], [], [], [], []
+        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = [], [], [], [], [], []
+        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = [], [], [], [], [], []
 
         while coord_i < (hight):
             jt, coord_j = 0, 0
@@ -109,81 +109,23 @@ class Experiment:
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
 
-                length_hist, degree_hist, vis1 = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
-                # self.data.show_result(vis1, original_shape, step, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
+                length_hist, degree_hist, vis, l_metrics, d_metrics = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                l_ME_list.append(l_metrics[0])
+                l_SD_list.append(l_metrics[1])
+                l_CV_list.append(l_metrics[2])
+                d_ME_list.append(d_metrics[0])
+                d_SD_list.append(d_metrics[1])
+                d_CV_list.append(d_metrics[2])
+                # self.data.show_result(vis, original_shape, step, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
 
-                a_length_hist, a_degree_hist, vis2 = start_A_SIFT(original, photo)
-                # self.data.show_result(vis2, original_shape, step, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
-
-                # for SIFT
-                lens = length_hist['length']
-                l_counts = length_hist['count']
-                l_n = l_counts.size
-
-                degs = degree_hist['degree']
-                d_counts = degree_hist['count']
-                d_n = d_counts.size
-
-                if l_n: 
-                    Ml = sum([float(lens[i])*l_counts[i]/l_n for i in range(l_n)])
-                    l_standard_deviation = sqrt(sum([(float(lens[i])-Ml)**2 for i in range(l_n)])/(l_n-1))
-                    CV_l = Ml/l_standard_deviation
-                else: 
-                    Ml = 0
-                    l_standard_deviation = 0
-                    CV_l = 0
-                
-                Ml_list.append(Ml)
-                SDl_list.append(l_standard_deviation)
-                CVl_list.append(CV_l) 
-
-                if d_n: 
-                    Md = sum([float(degs[i])*d_counts[i]/d_n for i in range(d_n)])
-                    d_standard_deviation = sqrt(sum([(float(degs[i])-Md)**2 for i in range(d_n)])/(d_n-1))
-                    CV_d = Md/d_standard_deviation
-                else:
-                    Md = 0
-                    d_standard_deviation = 0
-                    CV_d = 0
-
-                Md_list.append(Md)
-                SDd_list.append(d_standard_deviation)
-                CVd_list.append(CV_d) 
-
-                # for ASIFT
-                a_lens = a_length_hist['length']
-                a_l_counts = a_length_hist['count']
-                a_l_n = a_l_counts.size
-
-                a_degs = a_degree_hist['degree']
-                a_d_counts = a_degree_hist['count']
-                a_d_n = a_d_counts.size
-
-                if a_l_n: 
-                    a_Ml = sum([float(a_lens[i])*a_l_counts[i]/a_l_n for i in range(a_l_n)])
-                    a_l_standard_deviation = sqrt(sum([(float(a_lens[i])-a_Ml)**2 for i in range(a_l_n)])/(a_l_n-1))
-                    a_CV_l = a_Ml/a_l_standard_deviation
-                else: 
-                    a_Ml = 0
-                    a_l_standard_deviation = 0
-                    a_CV_l = 0
-                
-                a_Ml_list.append(a_Ml)
-                a_SDl_list.append(a_l_standard_deviation)
-                a_CVl_list.append(a_CV_l) 
-
-                if a_d_n: 
-                    a_Md = sum([float(a_degs[i])*a_d_counts[i]/a_d_n for i in range(a_d_n)])
-                    a_d_standard_deviation = sqrt(sum([(float(a_degs[i])-a_Md)**2 for i in range(a_d_n)])/(a_d_n-1))
-                    a_CV_d = a_Md/a_d_standard_deviation
-                else:
-                    a_Md = 0
-                    a_d_standard_deviation = 0
-                    a_CV_d = 0
-
-                a_Md_list.append(a_Md)
-                a_SDd_list.append(a_d_standard_deviation)
-                a_CVd_list.append(a_CV_d) 
+                a_length_hist, a_degree_hist, a_vis, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
+                a_l_ME_list.append(a_l_metrics[0])
+                a_l_SD_list.append(a_l_metrics[1])
+                a_l_CV_list.append(a_l_metrics[2])
+                a_d_ME_list.append(a_d_metrics[0])
+                a_d_SD_list.append(a_d_metrics[1])
+                a_d_CV_list.append(a_d_metrics[2])
+                # self.data.show_result(a_vis, original_shape, step, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
                 
                 coord_j += step
                 jt+=1

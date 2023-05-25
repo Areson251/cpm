@@ -120,48 +120,11 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
     print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS (by length)")
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
 
-    # ------------------VISUALISATION------------------
+    l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
 
-    # fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
-    # plt.gray()
-    # cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
+    d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
-    # ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
-    # ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
-
-    # ax[0, 0].axis('off')
-    # ax[0, 0].set_title("Map vs. Photo on board\n"
-    #                 "(all keypoints and matches)")
-
-    # ax[0, 1].bar(length_hist['length'], length_hist['count'])
-    # # ax[0, 1].axis('off')
-    # ax[0, 1].set_title("Vectors length histogram")
-
-    # ax[1, 1].bar(degree_hist['degree'], degree_hist['count'])
-    # # ax[1, 1].axis('off')
-    # ax[1, 1].set_title("Vectors degrees histogram")
-    
-    # # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
-    # #             only_matches=True)
-    # # ax[1, 1].axis('off')
-    # # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
-    # #                 "(subset of matches for visibility)")
-
-    # original_coords_br = (original_coords[0]+img1.shape[0], original_coords[1]+img1.shape[0])
-    # map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
-
-    # photo_coords_br = (photo_coords[0]+img2.shape[0], photo_coords[1]+img2.shape[0])
-    # map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
-
-    # ax[1, 0].imshow(map,cmap = 'gray')
-    # ax[1, 0].axis('off')
-    # ax[1, 0].set_title("Current photos")
-
-    # plt.tight_layout()
-    # plt.show()
-    # i=0
-
-    return length_hist, degree_hist, vis
+    return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
 
 
 def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
@@ -273,11 +236,28 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
     print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS (by length)")
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
             
-    # fig, ax = plt.subplots(figsize=(18,8))
-    # ax.imshow(vis)
-    # plt.show()
+    l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
 
-    return length_hist, degree_hist, vis
+    d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
+
+    return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+
+
+def count_metrics(data_hist=None, param=""):            
+    param_ = data_hist[param]
+    counts = data_hist['count']
+    n = counts.size
+
+    if n: 
+        ME = sum([float(param_[i])*counts[i]/n for i in range(n)])
+        SD = sqrt(sum([(float(param_[i])-ME)**2 for i in range(n)])/(n-1))
+        CV = ME/SD
+    else: 
+        ME = 0
+        SD = 0
+        CV = 0
+    
+    return ME, SD, CV
 
 
 def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2):
