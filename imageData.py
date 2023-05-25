@@ -119,6 +119,42 @@ class ImageData:
         return self.cropped_image, self.coords
 
 
+    def show_result(self, vis=None, img1_shape=None, img2_shape=None, original_coords=None, photo_coords=None, map=None, length_hist=None, degree_hist=None):
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
+        plt.gray()
+
+        ax[0, 0].imshow(vis)
+        ax[0, 0].axis('off')
+        ax[0, 0].set_title("Map vs. Photo on board\n"
+                        "(all keypoints and matches)")
+
+        ax[0, 1].bar(length_hist['length'], length_hist['count'])
+        # ax[0, 1].axis('off')
+        ax[0, 1].set_title("Vectors length histogram")
+
+        ax[1, 1].bar(degree_hist['degree'], degree_hist['count'])
+        # ax[1, 1].axis('off')
+        ax[1, 1].set_title("Vectors degrees histogram")
+        
+        # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
+        #             only_matches=True)
+        # ax[1, 1].axis('off')
+        # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
+        #                 "(subset of matches for visibility)")
+
+        original_coords_br = (original_coords[0]+img1_shape, original_coords[1]+img1_shape)
+        map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
+
+        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
+        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+
+        ax[1, 0].imshow(map,cmap = 'gray')
+        ax[1, 0].axis('off')
+        ax[1, 0].set_title("Current photos")
+
+        plt.tight_layout()
+        plt.show()
+        i=0
 
 if __name__ == "__main__":
     data = ImageData()
