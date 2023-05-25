@@ -96,16 +96,74 @@ class Experiment:
         step = self.data.MAP_SLICE
         width = image1.shape[1] - photo.shape[1]
         hight = image1.shape[0] - photo.shape[0]
-        i = 0
-        while i < (hight):
-            j=0
-            while j < (width-step):
-                original_coords = (j, i)
+        it, coord_i, Ml_list, SDl_list, CVl_list, Md_list, SDd_list, CVd_list = 0, 0, [], [], [], [], [], []
+        while coord_i < (hight):
+            jt, coord_j = 0, 0
+            while coord_j < (width-step):
+                print(f"ITERATION: {it}, {jt}")
+                original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
                 length_hist, degree_hist = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+
+                lens = length_hist['length']
+                l_counts = length_hist['count']
+                l_n = l_counts.size
+
+                degs = degree_hist['degree']
+                d_counts = degree_hist['count']
+                d_n = d_counts.size
+
+                if l_n: 
+                    Ml = sum([float(lens[i])*l_counts[i]/l_n for i in range(l_n)])
+                    l_standard_deviation = sqrt(sum([(float(lens[i])-Ml)**2 for i in range(l_n)])/(l_n-1))
+                    CV_l = Ml/l_standard_deviation
+                else: 
+                    Ml = 0
+                    l_standard_deviation = 0
+                    CV_l = 0
                 
-                j += step
-            i += step
+                Ml_list.append(Ml)
+                SDl_list.append(l_standard_deviation)
+                CVl_list.append(CV_l) 
+
+                if d_n: 
+                    Md = sum([float(degs[i])*d_counts[i]/d_n for i in range(d_n)])
+                    d_standard_deviation = sqrt(sum([(float(degs[i])-Md)**2 for i in range(d_n)])/(d_n-1))
+                    CV_d = Md/d_standard_deviation
+                else:
+                    Md = 0
+                    d_standard_deviation = 0
+                    CV_d = 0
+
+                Md_list.append(Md)
+                SDd_list.append(d_standard_deviation)
+                CVd_list.append(CV_d) 
+                
+                coord_j += step
+                jt+=1
+            coord_i += step
+            it+=1
+
+        # ------------------VISUALISATION------------------
+        figure, axes = plt.subplots(nrows=2, ncols=3, figsize=(11, 8))
+
+        axes[0, 0].set_title("Mathematical expectation")
+        axes[0, 0].set_xlabel("length")
+        axes[0, 0].set_ylabel("degree")
+        axes[0, 0].scatter(Ml_list, Md_list)
+
+        axes[0, 1].set_title("Standard deviation")
+        axes[0, 1].set_xlabel("length")
+        axes[0, 1].set_ylabel("degree")
+        axes[0, 1].scatter(SDl_list, SDd_list)
+
+        axes[0, 2].set_title("Coefficient of variation")
+        axes[0, 2].set_xlabel("length")
+        axes[0, 2].set_ylabel("degree")
+        axes[0, 2].scatter(CVl_list, CVd_list)
+
+        # plt.tight_layout()
+        plt.show()
 
 
     def find_extrema(self, res, count, i, j):

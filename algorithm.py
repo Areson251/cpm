@@ -90,37 +90,24 @@ def use_cv_match_template(img, template, method):
 
 def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, map=None):
     descriptor_extractor = SIFT()
-    print("STEP 1")
+
     descriptor_extractor.detect_and_extract(img1)
     keypoints1 = descriptor_extractor.keypoints
     descriptors1 = descriptor_extractor.descriptors
-    print("STEP 2")
 
     descriptor_extractor.detect_and_extract(img2)
     keypoints2 = descriptor_extractor.keypoints
     descriptors2 = descriptor_extractor.descriptors
-    print("STEP 3")
-
-    # descriptor_extractor.detect_and_extract(img3)
-    # keypoints3 = descriptor_extractor.keypoints
-    # descriptors3 = descriptor_extractor.descriptors
 
     matches12 = match_descriptors(descriptors1, descriptors2, max_ratio=0.6,
                                 cross_check=True)
-    # matches13 = match_descriptors(descriptors1, descriptors3, max_ratio=0.6,
-    #                             cross_check=True)
-    print("STEP 4")
 
-    fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
-    cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
+    cor = extract_coords(img1, img2, keypoints1, keypoints2, matches12)
 
     length_hist = np.array([], dtype=[('length', 'U10'), ('count', 'i4')])
     degree_hist = np.array([], dtype=[('degree', 'U10'), ('count', 'i4')])
     
     for dots in cor: 
-        # ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
-        # ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
-
         l = sqrt((dots[0][0]-dots[1][0])*(dots[0][0]-dots[1][0])+(dots[0][1]-dots[1][1])*(dots[0][1]-dots[1][1]))
         a = 180 - degrees(np.arccos((dots[0][0]-dots[1][0])/(l)))
         l = str(round(l, 6))
@@ -144,8 +131,8 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
             degree_elem = np.array([(a, 1)], dtype=[('degree', 'U10'), ('count', 'i4')])
             degree_hist = np.append(degree_hist, degree_elem)
 
-    print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS")
-    print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS")
+    print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS (by length)")
+    print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
 
     length_hist = np.sort(length_hist)
     degree_hist = np.sort(degree_hist)
@@ -153,10 +140,12 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
     # ------------------VISUALISATION------------------
 
     # fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
-
     # plt.gray()
-
     # cor = plot_matches(ax[0, 0], img1, img2, keypoints1, keypoints2, matches12, only_matches=True)
+
+    # ax[0, 0].plot(dots[0][0], dots[0][1], "rx")
+    # ax[0, 0].plot(dots[1][0], dots[1][1], "bx")
+
     # ax[0, 0].axis('off')
     # ax[0, 0].set_title("Map vs. Photo on board\n"
     #                 "(all keypoints and matches)")
@@ -188,7 +177,56 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
     # plt.tight_layout()
     # plt.show()
     # i=0
+
     return length_hist, degree_hist
+
+
+def extract_coords(image1, image2, keypoints1, keypoints2, matches, alignment='horizontal'):
+    # image1 = img_as_float(image1)
+    # image2 = img_as_float(image2)
+
+    new_shape1 = list(image1.shape)
+    new_shape2 = list(image2.shape)
+
+    if image1.shape[0] < image2.shape[0]:
+        new_shape1[0] = image2.shape[0]
+    elif image1.shape[0] > image2.shape[0]:
+        new_shape2[0] = image1.shape[0]
+
+    if image1.shape[1] < image2.shape[1]:
+        new_shape1[1] = image2.shape[1]
+    elif image1.shape[1] > image2.shape[1]:
+        new_shape2[1] = image1.shape[1]
+
+    if new_shape1 != image1.shape:
+        new_image1 = np.zeros(new_shape1, dtype=image1.dtype)
+        new_image1[:image1.shape[0], :image1.shape[1]] = image1
+        image1 = new_image1
+
+    if new_shape2 != image2.shape:
+        new_image2 = np.zeros(new_shape2, dtype=image2.dtype)
+        new_image2[:image2.shape[0], :image2.shape[1]] = image2
+        image2 = new_image2
+
+    offset = np.array(image1.shape)
+    if alignment == 'horizontal':
+        offset[0] = 0
+    elif alignment == 'vertical':
+        offset[1] = 0
+    else:
+        mesg = (f"plot_matches accepts either 'horizontal' or 'vertical' for "
+                f"alignment, but '{alignment}' was given. See "
+                f"https://scikit-image.org/docs/dev/api/skimage.feature.html#skimage.feature.plot_matches "  # noqa
+                f"for details.")
+        raise ValueError(mesg)
+
+    coords = []
+    for i in range(matches.shape[0]):
+        idx1 = matches[i, 0]
+        idx2 = matches[i, 1]
+        coords.append(((keypoints1[idx1, 1], keypoints1[idx1, 0]),
+                    (keypoints2[idx2, 1] + offset[1], keypoints2[idx2, 0] + offset[0])))
+    return coords
 
 
 def create_convolution(image1, image2, step):
