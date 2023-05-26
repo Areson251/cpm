@@ -13,7 +13,7 @@ import glob
 from tqdm import tqdm
 from PIL import Image
 from IPython.display import clear_output
-from math import sin, cos, degrees
+from math import sin, cos, degrees, floor
 from asift import Timer, image_resize, init_feature, filter_matches, affine_detect
 from multiprocessing.pool import ThreadPool
 from skimage import data
@@ -28,39 +28,6 @@ IMAGE_2_PATH = 'photos/pictures/g_cropped.jpg'
 PIXELS_STEP = 51
 MAP_SLICE = 501
 SHAPE = 10
-
-
-def count_difference_with_step(image1, image2, step=101):
-    w, h = count_shapes(image1, image2)
-    width = image1.shape[1] - image2.shape[1]
-    height = image1.shape[0] - image2.shape[0]
-
-    image_pixels = np.array([]) 
-    i_num, kol_steps = 0, 0
-
-    #TODO: write normal cycle
-    while i_num <= height:
-        pixels_row, j_num = np.array([]), 0
-        while j_num <= width:
-            sum = 0
-            for i in range(image2.shape[0]):
-                for j in range(image2.shape[1]):
-                    # print(i, j, i_num, j_num)
-                    sum += 255 - abs(image1.item((i_num + i, j_num + j)) - image2.item((i, j))) 
-            # pixel = sum / (image2.shape[0] * image2.shape[1])
-            image_pixels = np.append(image_pixels, sum / (image2.shape[0] * image2.shape[1]))
-            # image_pixels.item(i_num, j_num) = pixel
-            j_num+=step  
-        # image_pixels = np.append(image_pixels, pixels_row, axis=0)  
-        i_num += step
-        kol_steps += 1
-        print(f"STEP NUMBER: {kol_steps}")
-    
-    min = np.amin(image_pixels)
-    max = np.amax(image_pixels)
-    A = 255 * (image_pixels - min)//(max-min)
-    B = np.reshape(A.astype(int), (math.floor(i_num/step), -1))
-    return B
 
 
 def use_cv_match_template(img, template, method):
@@ -105,8 +72,8 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
 
     cor, vis = extract_coords(img1, img2, keypoints1, keypoints2, matches12)
 
-    length_hist = np.array([], dtype=[('length', 'U10'), ('count', 'i4')])
-    degree_hist = np.array([], dtype=[('degree', 'U10'), ('count', 'i4')])
+    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
+    degree_hist = np.array([], dtype=[('degree', 'f4'), ('count', 'i4')])
     
     for dots in cor: 
         x1, y1 = dots[0][0], dots[0][1]
@@ -121,7 +88,6 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
 
     l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
-
     d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
     return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
@@ -222,8 +188,8 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
     green = (0, 255, 0)
     red = (0, 0, 255)
 
-    length_hist = np.array([], dtype=[('length', 'U10'), ('count', 'i4')])
-    degree_hist = np.array([], dtype=[('degree', 'U10'), ('count', 'i4')])
+    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
+    degree_hist = np.array([], dtype=[('degree', 'f4'), ('count', 'i4')])
 
     for (x1, y1), (x2, y2) in [(p1[i], p2[i]) for i in range(len(p1))]:
         #if inlier:
@@ -237,7 +203,6 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
             
     l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
-
     d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
     return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
@@ -246,25 +211,34 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
 def count_metrics(data_hist=None, param=""):            
     param_ = data_hist[param]
     counts = data_hist['count']
-    n = counts.size
+    n = sum(counts)
+    s = counts.size
 
     if n: 
-        ME = sum([float(param_[i])*counts[i]/n for i in range(n)])
-        SD = sqrt(sum([(float(param_[i])-ME)**2 for i in range(n)])/(n-1))
-        CV = ME/SD
+        ME = round(count_ME(param_, counts, n, s), 2)
+        param_2 = [round(float(x)**2, 2) for x in param_]
+        ME2 = round(count_ME(param_2, counts, n, s), 2)
+        m = floor((ME)**2)
+        D = round(ME2-m, 2)
+        SD = round(sqrt(D), 2)
+        CV = round(ME/SD, 2)
     else: 
-        ME = 0
-        SD = 0
-        CV = 0
+        ME = -1
+        SD = -1
+        CV = -1
     
     return ME, SD, CV
 
 
-def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2):
+def count_ME(param_=[], counts=[], n=None, s=None):
+    return sum([float(param_[i])*counts[i]/n for i in range(s)])
+
+
+def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2): 
     l = sqrt((x1-x2)**2+(y1-y2)**2)
     a = 180 - degrees(np.arccos((x1-x2)/(l)))
-    l = str(round(l, 6))
-    a = str(round(a, 2))
+    l = round(l, 4)
+    a = round(a, 2)
     lens = length_hist['length']
     l_counts = length_hist['count']
     deg = degree_hist['degree']
@@ -274,14 +248,14 @@ def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2):
     if not l_idx.size == 0:
         length_hist[l_idx[0]] = (l, l_counts[l_idx[0]]+1)
     else:
-        length_elem = np.array([(l, 1)], dtype=[('length', 'U10'), ('count', 'i4')])
+        length_elem = np.array([(l, 1)], dtype=[('length', 'f4'), ('count', 'i4')])
         length_hist = np.append(length_hist, length_elem)
 
     a_idx = np.where(deg == a)[0]
     if not a_idx.size == 0:
         degree_hist[a_idx[0]] = (a, a_counts[a_idx[0]]+1)
     else:
-        degree_elem = np.array([(a, 1)], dtype=[('degree', 'U10'), ('count', 'i4')])
+        degree_elem = np.array([(a, 1)], dtype=[('degree', 'f4'), ('count', 'i4')])
         degree_hist = np.append(degree_hist, degree_elem)
     
     return length_hist, degree_hist
@@ -347,38 +321,6 @@ def extract_coords(image1, image2, keypoints1, keypoints2, matches, alignment='h
     # plt.close()
 
     return coords, vis
-
-
-def create_convolution(image1, image2, step):
-    width, height = count_shapes(image1, image2)
-
-    image_pixels = []
-
-    #TODO: write normal cycle
-    for i_num in range(height):
-        pixels_row = []
-        for j_num in range(width):
-            sum = 0
-            for i in range(image2.shape[0]):
-                for j in range(image2.shape[1]):
-                    sum += 255 - abs(image1.item((i_num*image2.shape[0] + i, j_num*image2.shape[1] + j)) - image2.item((i, j))) 
-            pixel = sum / (image2.shape[0] * image2.shape[1])
-            pixels_row.append(round(pixel))      
-        image_pixels.append(pixels_row)  
-    
-
-def count_shapes(image1, image2):
-    width = math.floor(image1.shape[1] / image2.shape[1])
-    height = math.floor(image1.shape[0] / image2.shape[0])
-
-    return width, height
-
-
-def create_image(pixels):
-    avarage = int(np.sum(pixels) / (pixels.shape[0] * pixels.shape[1]))
-    pixels[pixels < avarage] = 0
-    
-    return pixels
 
 
 def show_result(result=None, img=None, crop_img=None, method=None, top_left=None, bottom_right=None):

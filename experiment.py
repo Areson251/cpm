@@ -99,36 +99,46 @@ class Experiment:
         width = image1.shape[1] - photo.shape[1]
         hight = image1.shape[0] - photo.shape[0]
         it, coord_i = 0, 0
-        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = [], [], [], [], [], []
-        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = [], [], [], [], [], []
+        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
 
         while coord_i < (hight):
             jt, coord_j = 0, 0
+            l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+            a_l_ME, a_l_SD, a_l_CV, a_d_ME, a_d_SD, a_d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
             while coord_j < (width-step):
-                print(f"ITERATION: {it}, {jt}")
+                print(f"\nITERATION: {it}, {jt}")
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
 
                 length_hist, degree_hist, vis, l_metrics, d_metrics = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
-                l_ME_list.append(l_metrics[0])
-                l_SD_list.append(l_metrics[1])
-                l_CV_list.append(l_metrics[2])
-                d_ME_list.append(d_metrics[0])
-                d_SD_list.append(d_metrics[1])
-                d_CV_list.append(d_metrics[2])
+                l_ME = np.append(l_ME, l_metrics[0])
+                l_SD = np.append(l_SD, l_metrics[1])
+                l_CV = np.append(l_CV, l_metrics[2])
+                d_ME = np.append(d_ME, d_metrics[0])
+                d_SD = np.append(d_SD, d_metrics[1])
+                d_CV = np.append(d_CV, d_metrics[2])
                 # self.data.show_result(vis, original_shape, step, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
 
                 a_length_hist, a_degree_hist, a_vis, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
-                a_l_ME_list.append(a_l_metrics[0])
-                a_l_SD_list.append(a_l_metrics[1])
-                a_l_CV_list.append(a_l_metrics[2])
-                a_d_ME_list.append(a_d_metrics[0])
-                a_d_SD_list.append(a_d_metrics[1])
-                a_d_CV_list.append(a_d_metrics[2])
+                a_l_ME = np.append(a_l_ME, a_l_metrics[0])
+                a_l_SD = np.append(a_l_SD, a_l_metrics[1])
+                a_l_CV = np.append(a_l_CV, a_l_metrics[2])
+                a_d_ME = np.append(a_d_ME, a_d_metrics[0])
+                a_d_SD = np.append(a_d_SD, a_d_metrics[1])
+                a_d_CV = np.append(a_d_CV, a_d_metrics[2])
                 # self.data.show_result(a_vis, original_shape, step, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
                 
                 coord_j += step
                 jt+=1
+
+            l_ME_list = np.concatenate([l_ME_list, l_ME], axis=0)
+            l_SD_list = np.concatenate([l_SD_list, l_SD], axis=0)
+            l_CV_list = np.concatenate([l_CV_list, l_CV], axis=0)
+            d_ME_list = np.concatenate([d_ME_list, d_ME], axis=0)
+            d_SD_list = np.concatenate([d_SD_list, d_SD], axis=0)
+            d_CV_list = np.concatenate([d_CV_list, d_CV], axis=0)
+
             coord_i += step
             it+=1
 

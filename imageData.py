@@ -119,6 +119,13 @@ class ImageData:
         return self.cropped_image, self.coords
 
 
+    def create_image(self, pixels):
+        avarage = int(np.sum(pixels) / (pixels.shape[0] * pixels.shape[1]))
+        pixels[pixels < avarage] = 0
+        
+        return pixels
+
+
     def show_result(self, vis=None, img1_shape=None, img2_shape=None, original_coords=None, photo_coords=None, map=None, length_hist=None, degree_hist=None):
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
         plt.gray()
