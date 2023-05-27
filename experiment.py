@@ -98,9 +98,12 @@ class Experiment:
         step = self.data.MAP_SLICE
         width = image1.shape[1] - photo.shape[1]
         hight = image1.shape[0] - photo.shape[0]
+        shape_i = int(hight / step)
+        shape_j = int(width / step)
+
         it, coord_i = 0, 0
-        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), 
+        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), 
 
         while coord_i < (hight):
             jt, coord_j = 0, 0
@@ -132,12 +135,19 @@ class Experiment:
                 coord_j += step
                 jt+=1
 
-            l_ME_list = np.concatenate([l_ME_list, l_ME], axis=0)
-            l_SD_list = np.concatenate([l_SD_list, l_SD], axis=0)
-            l_CV_list = np.concatenate([l_CV_list, l_CV], axis=0)
-            d_ME_list = np.concatenate([d_ME_list, d_ME], axis=0)
-            d_SD_list = np.concatenate([d_SD_list, d_SD], axis=0)
-            d_CV_list = np.concatenate([d_CV_list, d_CV], axis=0)
+            l_ME_list = np.append(l_ME_list, [l_ME], axis=0)
+            l_SD_list = np.append(l_SD_list, [l_SD], axis=0)
+            l_CV_list = np.append(l_CV_list, [l_CV], axis=0)
+            d_ME_list = np.append(d_ME_list, [d_ME], axis=0)
+            d_SD_list = np.append(d_SD_list, [d_SD], axis=0)
+            d_CV_list = np.append(d_CV_list, [d_CV], axis=0)
+
+            a_l_ME_list = np.append(a_l_ME_list, [a_l_ME], axis=0)
+            a_l_SD_list = np.append(a_l_SD_list, [a_l_SD], axis=0)
+            a_l_CV_list = np.append(a_l_CV_list, [a_l_CV], axis=0)
+            a_d_ME_list = np.append(a_d_ME_list, [a_d_ME], axis=0)
+            a_d_SD_list = np.append(a_d_SD_list, [a_d_SD], axis=0)
+            a_d_CV_list = np.append(a_d_CV_list, [a_d_CV], axis=0)
 
             coord_i += step
             it+=1

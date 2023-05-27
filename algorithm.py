@@ -20,6 +20,7 @@ from skimage import data
 from skimage import transform
 from skimage.color import rgb2gray
 from skimage.feature import match_descriptors, plot_matches, SIFT
+from decimal import Decimal
 from imageData import *
 
 EXPERIMENT_COUNT = 30
@@ -215,13 +216,13 @@ def count_metrics(data_hist=None, param=""):
     s = counts.size
 
     if n: 
-        ME = round(count_ME(param_, counts, n, s), 2)
-        param_2 = [round(float(x)**2, 2) for x in param_]
-        ME2 = round(count_ME(param_2, counts, n, s), 2)
+        ME = floor(count_ME(param_, counts, n, s))
+        param_2 = [(x)**2 for x in param_]
+        ME2 = ceil(count_ME(param_2, counts, n, s))
         m = floor((ME)**2)
         D = round(ME2-m, 2)
-        SD = round(sqrt(D), 2)
-        CV = round(ME/SD, 2)
+        SD = sqrt(D)
+        CV = ME/SD
     else: 
         ME = -1
         SD = -1
@@ -231,7 +232,8 @@ def count_metrics(data_hist=None, param=""):
 
 
 def count_ME(param_=[], counts=[], n=None, s=None):
-    return sum([float(param_[i])*counts[i]/n for i in range(s)])
+    c = np.array([x/n for x in counts])
+    return np.sum(param_ * c)
 
 
 def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2): 
