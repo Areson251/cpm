@@ -6,6 +6,7 @@ import time, datetime
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
+from operator import itemgetter
 from algorithm import *
 import pandas as pd 
 import numpy as np
@@ -73,30 +74,40 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
 
     cor, vis = extract_coords(img1, img2, keypoints1, keypoints2, matches12)
 
-    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
-    degree_hist = np.array([], dtype=[('degree', 'f4'), ('count', 'i4')])
+    vis1 = vis.copy()
+    vis2 = vis.copy()
+
+    length_hist = np.array([], dtype=[('length', 'i4'), ('count', 'i4')])
+    degree_hist = np.array([], dtype=[('degree', 'i4'), ('count', 'i4')])
+
+    vectors = np.array([], dtype=[('length', 'i4'), ('degree', 'i4'), ('x1', 'i4'), ('y1', 'i4'), ('x2', 'i4'), ('y2', 'i4')])
+    vectors_stat = np.array([], dtype=[('length', 'i4'), ('degree', 'i4'), ('count', 'i4')])
     
     for dots in cor: 
         x1, y1 = dots[0][0], dots[0][1]
         x2, y2 = dots[1][0], dots[1][1]
 
-        length_hist, degree_hist = add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2)
+        vectors, vectors_stat, length_hist, degree_hist = add_elem_to_hist(vectors, vectors_stat, length_hist, degree_hist, x1, y1, x2, y2)
 
     length_hist = np.sort(length_hist)
     degree_hist = np.sort(degree_hist)
+    vectors = np.sort(vectors)[::-1]
+    vectors_stat = np.sort(vectors_stat)[::-1]
 
     print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS (by length)")
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
 
+    vis2, true_vectors_count = draw_vectors(vis2, vectors, vectors_stat)
+
     l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
     d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
-    return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+    return true_vectors_count, length_hist, degree_hist, vis1, vis2, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
 
 
 def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
     print("\nSTART ASIFT ALGORITHM")
-    clahe = cv2.createCLAHE(clipLimit=16, tileGridSize=(16,16))
+    # clahe = cv2.createCLAHE(clipLimit=16, tileGridSize=(16,16))
     # ori_img1_ = clahe.apply(ori_img1_)
     # ori_img2_ = clahe.apply(ori_img2_)
 
@@ -173,6 +184,9 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
     vis[:h2, w1:w1 + w2] = img2_
     vis = cv2.cvtColor(vis, cv2.COLOR_GRAY2BGR)
 
+    vis1 = vis.copy()
+    vis2 = vis.copy()
+
     if H is not None:
         corners = np.float32([[0, 0], [w2, 0], [w2, h2], [0, h2]])
         corners = np.int32(cv2.perspectiveTransform(corners.reshape(1, -1, 2), H).reshape(-1, 2) + (w1, 0))
@@ -186,27 +200,94 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
         p1.append(np.int32(kpp[0].pt))
         p2.append(np.int32(np.array(kpp[1].pt) * ratio_2 + [w1, 0]))
 
-    green = (0, 255, 0)
-    red = (0, 0, 255)
+    length_hist = np.array([], dtype=[('length', 'i4'), ('count', 'i4')])
+    degree_hist = np.array([], dtype=[('degree', 'i4'), ('count', 'i4')])
 
-    length_hist = np.array([], dtype=[('length', 'f4'), ('count', 'i4')])
-    degree_hist = np.array([], dtype=[('degree', 'f4'), ('count', 'i4')])
-
+    vectors = np.array([], dtype=[('length', 'i4'), ('degree', 'i4'), ('x1', 'i4'), ('y1', 'i4'), ('x2', 'i4'), ('y2', 'i4')])
+    vectors_stat = np.array([], dtype=[('length', 'i4'), ('degree', 'i4'), ('count', 'i4')])
+    
     for (x1, y1), (x2, y2) in [(p1[i], p2[i]) for i in range(len(p1))]:
-        #if inlier:
-        cv2.line(vis, (x1, y1), (x2, y2), green, thickness=2)
-        length_hist, degree_hist = add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2)
+        vectors, vectors_stat, length_hist, degree_hist = add_elem_to_hist(vectors, vectors_stat, length_hist, degree_hist, x1, y1, x2, y2)
+        cv2.line(vis1, (x1, y1), (x2, y2), (0, 0, 255), thickness=2) 
 
     length_hist = np.sort(length_hist)
     degree_hist = np.sort(degree_hist)
+    vectors = np.sort(vectors)[::-1]
+    vectors_stat = np.sort(vectors_stat)[::-1]
 
     print(f"FOUND {length_hist['length'].size} DIFFERENT VECTORS (by length)")
     print(f"FOUND {degree_hist['degree'].size} DIFFERENT VECTORS (by degree)")
+
+    vis2, true_vectors_count = draw_vectors(vis2, vectors, vectors_stat)
             
     l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
     d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
-    return length_hist, degree_hist, vis, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+    return true_vectors_count, length_hist, degree_hist, vis1, vis2, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+
+
+def draw_vectors(vis=None, vectors=None, vectors_stat=None):
+    true_vectors_count = 0
+    if vectors.size:
+        max_vector = max(vectors_stat, key=itemgetter(2))
+
+        green = (0, 255, 0)
+        yellow = (255, 255, 51)
+        red = (255, 0, 0)
+
+        for vector in vectors:
+            x1, y1, x2, y2 = vector[2], vector[3], vector[4], vector[5] 
+            if vector[0] > max_vector[0]-5 and vector[0] < max_vector[0]+5 and vector[1] > max_vector[1]-2 and vector[1] < max_vector[1]+2:
+                cv2.line(vis, (x1, y1), (x2, y2), green, thickness=2) 
+                true_vectors_count += 1
+            else:
+                cv2.line(vis, (x1, y1), (x2, y2), red, thickness=2) 
+    return vis, true_vectors_count
+
+
+def add_elem_to_hist(vectors, vectors_stat, length_hist, degree_hist, x1, y1, x2, y2): 
+    l = round(sqrt((x1-x2)**2+(y1-y2)**2))
+    d = round(180 - degrees(np.arccos((x1-x2)/(l))))
+
+    lens = length_hist['length']
+    l_counts = length_hist['count']
+    deg = degree_hist['degree']
+    d_counts = degree_hist['count']
+    vec_lens = vectors_stat['length']
+    vec_degs = vectors_stat['degree']
+    vec_counts = vectors_stat['count']
+
+    vect = np.array([(l, d, x1, y1, x2, y2)], dtype=[('length', 'i4'), ('degree', 'i4'), ('x1', 'i4'), ('y1', 'i4'), ('x2', 'i4'), ('y2', 'i4')])
+    vectors = np.append(vectors, vect)
+
+    v_l_idx = np.where(vec_lens == l)[0]
+    v_d_idx = np.where(vec_degs == d)[0]
+    fl = 1
+    for l_idx in v_l_idx:
+        for d_idx in v_d_idx:
+            if l_idx == d_idx:
+                vectors_stat[v_l_idx[0]] = (l, d, vec_counts[v_l_idx[0]]+1)
+                fl = 0
+                break
+    if fl:
+        vec_elem = np.array([(l, d, 1)], dtype=[('length', 'i4'), ('degree', 'i4'), ('count', 'i4')])
+        vectors_stat = np.append(vectors_stat, vec_elem)
+
+    l_idx = np.where(lens == l)[0]
+    if not l_idx.size == 0:
+        length_hist[l_idx[0]] = (l, l_counts[l_idx[0]]+1)
+    else:
+        length_elem = np.array([(l, 1)], dtype=[('length', 'i4'), ('count', 'i4')])
+        length_hist = np.append(length_hist, length_elem)
+
+    d_idx = np.where(deg == d)[0]
+    if not d_idx.size == 0:
+        degree_hist[d_idx[0]] = (d, d_counts[d_idx[0]]+1)
+    else:
+        degree_elem = np.array([(d, 1)], dtype=[('degree', 'i4'), ('count', 'i4')])
+        degree_hist = np.append(degree_hist, degree_elem)
+    
+    return vectors, vectors_stat, length_hist, degree_hist
 
 
 def count_metrics(data_hist=None, param=""):            
@@ -237,33 +318,6 @@ def count_metrics(data_hist=None, param=""):
 def count_ME(param_=[], counts=[], n=None, s=None):
     c = np.array([x/n for x in counts])
     return np.sum(param_ * c)
-
-
-def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2): 
-    l = sqrt((x1-x2)**2+(y1-y2)**2)
-    a = 180 - degrees(np.arccos((x1-x2)/(l)))
-    l = round(l)
-    a = round(a)
-    lens = length_hist['length']
-    l_counts = length_hist['count']
-    deg = degree_hist['degree']
-    a_counts = degree_hist['count']
-
-    l_idx = np.where(lens == l)[0]
-    if not l_idx.size == 0:
-        length_hist[l_idx[0]] = (l, l_counts[l_idx[0]]+1)
-    else:
-        length_elem = np.array([(l, 1)], dtype=[('length', 'f4'), ('count', 'i4')])
-        length_hist = np.append(length_hist, length_elem)
-
-    a_idx = np.where(deg == a)[0]
-    if not a_idx.size == 0:
-        degree_hist[a_idx[0]] = (a, a_counts[a_idx[0]]+1)
-    else:
-        degree_elem = np.array([(a, 1)], dtype=[('degree', 'f4'), ('count', 'i4')])
-        degree_hist = np.append(degree_hist, degree_elem)
-    
-    return length_hist, degree_hist
 
 
 def extract_coords(image1, image2, keypoints1, keypoints2, matches, alignment='horizontal', keypoints_color='k', matches_color=None, only_matches=True,):
@@ -318,7 +372,7 @@ def extract_coords(image1, image2, keypoints1, keypoints2, matches, alignment='h
                     (keypoints2[idx2, 1] + offset[1], keypoints2[idx2, 0] + offset[0])))
         
         vis = cv2.line(vis, (keypoints1[idx1, 1], keypoints1[idx1, 0]),
-                    (keypoints2[idx2, 1] + offset[1], keypoints2[idx2, 0] + offset[0]), (255, 0, 0), thickness=2)
+                    (keypoints2[idx2, 1] + offset[1], keypoints2[idx2, 0] + offset[0]), (0, 0, 255), thickness=2)
         
     # fig, ax = plt.subplots(figsize=(18,8))
     # ax.imshow(vis)

@@ -36,6 +36,10 @@ if __name__ == "__main__":
     # res = use_cv_match_template(data.image1, data.image2, method)
     # show_result(res[0], data.image1, data.image2, method)
 
+    init_time = time.time()
+
     experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT, MAX_DEGREE)
     # experiment.experiment_KORR()
     experiment.experiment_SIFT()
+
+    print(f"\nSECONDS SPENT: {time.time() - init_time}")

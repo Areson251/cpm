@@ -120,8 +120,10 @@ class ImageData:
 
 
     def show_current_result(self, vis=None, img1_shape=None, img2_shape=None, original_coords=None, photo_coords=None, 
-                            map=None, length_hist=None, degree_hist=None):
+                            map=None, length_hist=None, degree_hist=None, algo_name="No name"):
+        
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
+        fig.suptitle(algo_name, fontsize=16)
         plt.gray()
 
         ax[0, 0].imshow(vis)
@@ -129,11 +131,11 @@ class ImageData:
         ax[0, 0].set_title("Map vs. Photo on board\n"
                         "(all keypoints and matches)")
 
-        ax[0, 1].bar([str(elem) for elem in length_hist['length']], length_hist['count'])
+        ax[0, 1].bar([str(int(elem)) for elem in length_hist['length']], length_hist['count'])
         # ax[0, 1].axis('off')
         ax[0, 1].set_title("Vectors length histogram")
 
-        ax[1, 1].bar([str(elem) for elem in degree_hist['degree']], degree_hist['count'])
+        ax[1, 1].bar([str(int(elem)) for elem in degree_hist['degree']], degree_hist['count'])
         # ax[1, 1].axis('off')
         ax[1, 1].set_title("Vectors degrees histogram")
 
@@ -151,7 +153,7 @@ class ImageData:
         plt.show()
 
 
-    def show_total_result(self, map=None, img2_shape=None, photo_coords=None, l_ME_list=None, l_SD_list=None, l_CV_list=None, 
+    def show_total_result_metrics(self, map=None, img2_shape=None, photo_coords=None, l_ME_list=None, l_SD_list=None, l_CV_list=None, 
                           d_ME_list=None, d_SD_list=None, d_CV_list=None, algo_name="No name"):
         
         fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(11, 8))
@@ -190,6 +192,32 @@ class ImageData:
         ax[1, 2].set_title("Degree coefficient of variation")
         ax[1, 2].imshow(d_CV_list, cmap = "gray", vmin=0, vmax=255)
         ax[1, 2].axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
+
+    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None, a_true_vectors=None, algo_name="No name"):
+        
+        fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(11, 8))
+        fig.suptitle(algo_name, fontsize=16)
+        plt.gray()
+        
+        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
+        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+
+        ax[0].set_title("SIFT")
+        ax[0].imshow(true_vectors, cmap = "gray", vmin=0, vmax=255)
+
+        ax[1].set_title("A-SIFT")
+        ax[1].imshow(a_true_vectors, cmap = "gray", vmin=0, vmax=255)
+
+        ax[2].imshow(map,cmap = 'gray')
+        ax[2].set_title("Map and photo")
+
+        ax[0].axis('off')
+        ax[1].axis('off')
+        ax[2].axis('off')
 
         plt.tight_layout()
         plt.show()

@@ -94,53 +94,68 @@ class Experiment:
         image1 = self.data.image1.copy()
         image2 = self.data.image2.copy()
 
-        photo, photo_coords = self.data.random_piece_of_map(image2.copy(), 0)
         original_shape = self.data.MAP_SLICE * 2
-        photo__shape = self.data.MAP_SLICE
+        photo_shape = self.data.MAP_SLICE
         step = int(self.data.MAP_SLICE / 2)
-        width = image1.shape[1] - photo.shape[1]
-        hight = image1.shape[0] - photo.shape[0]
+        photo, photo_coords = self.data.random_piece_of_map(image2.copy(), 0)
+        # photo_coords = (100, 200)
+        # photo = self.data.piece_of_map(image2.copy(), photo_coords, photo_shape)
+        width = image1.shape[1] - photo_shape
+        hight = image1.shape[0] - photo_shape
         shape_i = int(hight / step)
         shape_j = int(width / step) +1
 
         it, coord_i = 0, 0
-        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+        true_vectors_list, l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
                                                                     np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
-        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
+        a_true_vectors_list, a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
                                                                         np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
+                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
 
         while coord_i < (hight):
             jt, coord_j = 0, 0
-            l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-            a_l_ME, a_l_SD, a_l_CV, a_d_ME, a_d_SD, a_d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
+            true_vectors, l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), \
+                                                                                np.array([]), np.array([]), np.array([])
+            a_true_vectors, a_l_ME, a_l_SD, a_l_CV, a_d_ME, a_d_SD, a_d_CV = np.array([]), np.array([]), np.array([]), np.array([]), \
+                                                                                            np.array([]), np.array([]), np.array([])
             while coord_j < (width):
                 print(f"\n---------- ITERATION: {it}, {jt} ----------")
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
 
-                length_hist, degree_hist, vis, l_metrics, d_metrics = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                true_vectors_count, length_hist, degree_hist, vis1, vis2, l_metrics, d_metrics = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                true_vectors = np.append(true_vectors, true_vectors_count)
                 l_ME = np.append(l_ME, l_metrics[0])
                 l_SD = np.append(l_SD, l_metrics[1])
                 l_CV = np.append(l_CV, l_metrics[2])
                 d_ME = np.append(d_ME, d_metrics[0])
                 d_SD = np.append(d_SD, d_metrics[1])
                 d_CV = np.append(d_CV, d_metrics[2])
-                self.data.show_current_result(vis, original_shape, photo__shape, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
 
-                a_length_hist, a_degree_hist, a_vis, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
+                # self.data.show_current_result(vis1, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
+                #                               length_hist, degree_hist, "SIFT algorithm (count metrics)")
+                # self.data.show_current_result(vis2, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
+                                            #   length_hist, degree_hist, "SIFT algorithm (check vectors)")
+
+                a_true_vectors_count, a_length_hist, a_degree_hist, a_vis1, a_vis2, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
+                a_true_vectors = np.append(a_true_vectors, a_true_vectors_count)
                 a_l_ME = np.append(a_l_ME, a_l_metrics[0])
                 a_l_SD = np.append(a_l_SD, a_l_metrics[1])
                 a_l_CV = np.append(a_l_CV, a_l_metrics[2])
                 a_d_ME = np.append(a_d_ME, a_d_metrics[0])
                 a_d_SD = np.append(a_d_SD, a_d_metrics[1])
                 a_d_CV = np.append(a_d_CV, a_d_metrics[2])
-                self.data.show_current_result(a_vis, original_shape, photo__shape, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
+
+                # self.data.show_current_result(a_vis1, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
+                #                               a_length_hist, a_degree_hist, "A-SIFT algorithm (count metrics)")
+                # self.data.show_current_result(a_vis2, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
+                #                               a_length_hist, a_degree_hist, "A-SIFT algorithm (check vectors)")
                 
                 coord_j += step
                 jt+=1
 
+            true_vectors_list = np.append(true_vectors_list, [true_vectors], axis=0)
             l_ME_list = np.append(l_ME_list, [l_ME], axis=0)
             l_SD_list = np.append(l_SD_list, [l_SD], axis=0)
             l_CV_list = np.append(l_CV_list, [l_CV], axis=0)
@@ -148,6 +163,7 @@ class Experiment:
             d_SD_list = np.append(d_SD_list, [d_SD], axis=0)
             d_CV_list = np.append(d_CV_list, [d_CV], axis=0)
 
+            a_true_vectors_list = np.append(a_true_vectors_list, [a_true_vectors], axis=0)
             a_l_ME_list = np.append(a_l_ME_list, [a_l_ME], axis=0)
             a_l_SD_list = np.append(a_l_SD_list, [a_l_SD], axis=0)
             a_l_CV_list = np.append(a_l_CV_list, [a_l_CV], axis=0)
@@ -159,6 +175,7 @@ class Experiment:
             it+=1
 
         # ------------------VISUALISATION------------------
+        true_vectors_list = self.normalize_array(true_vectors_list)
         l_ME_list = self.normalize_array(l_ME_list)
         l_SD_list = self.normalize_array(l_SD_list)
         l_CV_list = self.normalize_array(l_CV_list)
@@ -166,6 +183,7 @@ class Experiment:
         d_SD_list = self.normalize_array(d_SD_list)
         d_CV_list = self.normalize_array(d_CV_list)
 
+        a_true_vectors_list = self.normalize_array(a_true_vectors_list)
         a_l_ME_list = self.normalize_array(a_l_ME_list)
         a_l_SD_list = self.normalize_array(a_l_SD_list)
         a_l_CV_list = self.normalize_array(a_l_CV_list)
@@ -173,16 +191,19 @@ class Experiment:
         a_d_SD_list = self.normalize_array(a_d_SD_list)
         a_d_CV_list = self.normalize_array(a_d_CV_list)
 
-        self.data.show_total_result(image1.copy(), photo__shape, photo_coords, l_ME_list, l_SD_list, l_CV_list, \
+        self.data.show_total_result_metrics(image1.copy(), photo_shape, photo_coords, l_ME_list, l_SD_list, l_CV_list, \
                                     d_ME_list, d_SD_list, d_CV_list, f"SIFT algorithm using {step} step")
-        self.data.show_total_result(image1.copy(), step, photo_coords, a_l_ME_list, a_l_SD_list, a_l_CV_list, \
+        self.data.show_total_result_metrics(image1.copy(), photo_shape, photo_coords, a_l_ME_list, a_l_SD_list, a_l_CV_list, \
                                     a_d_ME_list, a_d_SD_list, a_d_CV_list, f"ASIFT algorithm using {step} step")
+        self.data.show_total_result_vectors(image1.copy(), photo_shape, photo_coords, true_vectors_list, a_true_vectors_list, 
+                                            f"Counting identical vectors\nby {step} step")
         i=0
 
     
     def normalize_array(self, arr):
-        norm = np.linalg.norm(arr)
-        return arr / norm *255
+        # norm = np.linalg.norm(arr)
+        # arr = arr / norm * 255
+        return (255*(arr - np.min(arr))/np.ptp(arr)).astype(int) 
 
 
     def find_extrema(self, res, count, i, j):
@@ -232,5 +253,13 @@ class Experiment:
 
 
 if __name__ == "__main__":
-    experiment = Experiment()
-    experiment.experiment()
+    IMAGE_1_PATH = 'photos/maps/yandex.jpg'
+    IMAGE_2_PATH = 'photos/maps/google.jpg'
+    TEMPLATE_COUNT = 10
+    MAP_SLICE = 301
+    EXPERIMENT_COUNT = 31
+    EXTREMA_COUNT = 10
+    MAX_DEGREE = 30
+    experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, EXPERIMENT_COUNT, EXTREMA_COUNT, MAX_DEGREE)
+    arr = np.array([134, 54, 2])
+    experiment.normalize_array(arr)
