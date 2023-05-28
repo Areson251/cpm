@@ -7,6 +7,7 @@ import math
 import random
 from matplotlib import pyplot as plt
 from scipy.signal import argrelextrema, find_peaks
+from sklearn.preprocessing import normalize
 from algorithm import *
 import scipy
 import scipy.ndimage as ndimage
@@ -93,24 +94,29 @@ class Experiment:
         image1 = self.data.image1.copy()
         image2 = self.data.image2.copy()
 
-        photo, photo_coords = self.data.random_piece_of_map(image2, 0)
+        photo, photo_coords = self.data.random_piece_of_map(image2.copy(), 0)
         original_shape = self.data.MAP_SLICE * 2
-        step = self.data.MAP_SLICE
+        photo__shape = self.data.MAP_SLICE
+        step = int(self.data.MAP_SLICE / 2)
         width = image1.shape[1] - photo.shape[1]
         hight = image1.shape[0] - photo.shape[0]
         shape_i = int(hight / step)
-        shape_j = int(width / step)
+        shape_j = int(width / step) +1
 
         it, coord_i = 0, 0
-        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), 
-        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), np.empty(shape=(shape_i+1, shape_j)), 
+        l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
+        a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
+                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
 
         while coord_i < (hight):
             jt, coord_j = 0, 0
             l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
             a_l_ME, a_l_SD, a_l_CV, a_d_ME, a_d_SD, a_d_CV = np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-            while coord_j < (width-step):
-                print(f"\nITERATION: {it}, {jt}")
+            while coord_j < (width):
+                print(f"\n---------- ITERATION: {it}, {jt} ----------")
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
 
@@ -121,7 +127,7 @@ class Experiment:
                 d_ME = np.append(d_ME, d_metrics[0])
                 d_SD = np.append(d_SD, d_metrics[1])
                 d_CV = np.append(d_CV, d_metrics[2])
-                # self.data.show_result(vis, original_shape, step, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
+                self.data.show_current_result(vis, original_shape, photo__shape, original_coords, photo_coords, image1.copy(), length_hist, degree_hist)
 
                 a_length_hist, a_degree_hist, a_vis, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
                 a_l_ME = np.append(a_l_ME, a_l_metrics[0])
@@ -130,7 +136,7 @@ class Experiment:
                 a_d_ME = np.append(a_d_ME, a_d_metrics[0])
                 a_d_SD = np.append(a_d_SD, a_d_metrics[1])
                 a_d_CV = np.append(a_d_CV, a_d_metrics[2])
-                # self.data.show_result(a_vis, original_shape, step, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
+                self.data.show_current_result(a_vis, original_shape, photo__shape, original_coords, photo_coords, image1.copy(), a_length_hist, a_degree_hist)
                 
                 coord_j += step
                 jt+=1
@@ -153,40 +159,30 @@ class Experiment:
             it+=1
 
         # ------------------VISUALISATION------------------
-        figure, axes = plt.subplots(nrows=2, ncols=3, figsize=(13, 10))
+        l_ME_list = self.normalize_array(l_ME_list)
+        l_SD_list = self.normalize_array(l_SD_list)
+        l_CV_list = self.normalize_array(l_CV_list)
+        d_ME_list = self.normalize_array(d_ME_list)
+        d_SD_list = self.normalize_array(d_SD_list)
+        d_CV_list = self.normalize_array(d_CV_list)
 
-        axes[0, 0].set_title("Mathematical expectation SIFT")
-        axes[0, 0].set_xlabel("length")
-        axes[0, 0].set_ylabel("degree")
-        axes[0, 0].scatter(Ml_list, Md_list, alpha = 0.2)
+        a_l_ME_list = self.normalize_array(a_l_ME_list)
+        a_l_SD_list = self.normalize_array(a_l_SD_list)
+        a_l_CV_list = self.normalize_array(a_l_CV_list)
+        a_d_ME_list = self.normalize_array(a_d_ME_list)
+        a_d_SD_list = self.normalize_array(a_d_SD_list)
+        a_d_CV_list = self.normalize_array(a_d_CV_list)
 
-        axes[0, 1].set_title("Standard deviation SIFT")
-        axes[0, 1].set_xlabel("length")
-        axes[0, 1].set_ylabel("degree")
-        axes[0, 1].scatter(SDl_list, SDd_list, alpha = 0.2)
+        self.data.show_total_result(image1.copy(), photo__shape, photo_coords, l_ME_list, l_SD_list, l_CV_list, \
+                                    d_ME_list, d_SD_list, d_CV_list, f"SIFT algorithm using {step} step")
+        self.data.show_total_result(image1.copy(), step, photo_coords, a_l_ME_list, a_l_SD_list, a_l_CV_list, \
+                                    a_d_ME_list, a_d_SD_list, a_d_CV_list, f"ASIFT algorithm using {step} step")
+        i=0
 
-        axes[0, 2].set_title("Coefficient of variation SIFT")
-        axes[0, 2].set_xlabel("length")
-        axes[0, 2].set_ylabel("degree")
-        axes[0, 2].scatter(CVl_list, CVd_list, alpha = 0.2)
-
-        axes[1, 0].set_title("Mathematical expectation A-SIFT")
-        axes[1, 0].set_xlabel("length")
-        axes[1, 0].set_ylabel("degree")
-        axes[1, 0].scatter(Ml_list, Md_list, alpha = 0.2)
-
-        axes[1, 1].set_title("Standard deviation A-SIFT")
-        axes[1, 1].set_xlabel("length")
-        axes[1, 1].set_ylabel("degree")
-        axes[1, 1].scatter(SDl_list, SDd_list, alpha = 0.2)
-
-        axes[1, 2].set_title("Coefficient of variation A-SIFT")
-        axes[1, 2].set_xlabel("length")
-        axes[1, 2].set_ylabel("degree")
-        axes[1, 2].scatter(CVl_list, CVd_list, alpha = 0.2)
-
-        # plt.tight_layout()
-        plt.show()
+    
+    def normalize_array(self, arr):
+        norm = np.linalg.norm(arr)
+        return arr / norm *255
 
 
     def find_extrema(self, res, count, i, j):

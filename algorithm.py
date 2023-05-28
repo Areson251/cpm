@@ -13,7 +13,7 @@ import glob
 from tqdm import tqdm
 from PIL import Image
 from IPython.display import clear_output
-from math import sin, cos, degrees, floor
+from math import sin, cos, degrees, floor, sqrt
 from asift import Timer, image_resize, init_feature, filter_matches, affine_detect
 from multiprocessing.pool import ThreadPool
 from skimage import data
@@ -57,7 +57,7 @@ def use_cv_match_template(img, template, method):
 
 
 def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, map=None):
-    print("START SIFT ALGORITHM")
+    print("\nSTART SIFT ALGORITHM")
     descriptor_extractor = SIFT()
 
     descriptor_extractor.detect_and_extract(img1)
@@ -95,7 +95,7 @@ def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, ma
 
 
 def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
-    print("START ASIFT ALGORITHM")
+    print("\nSTART ASIFT ALGORITHM")
     clahe = cv2.createCLAHE(clipLimit=16, tileGridSize=(16,16))
     # ori_img1_ = clahe.apply(ori_img1_)
     # ori_img2_ = clahe.apply(ori_img2_)
@@ -222,7 +222,10 @@ def count_metrics(data_hist=None, param=""):
         m = floor((ME)**2)
         D = round(ME2-m, 2)
         SD = sqrt(D)
-        CV = ME/SD
+        if D: 
+            CV = ME/SD
+        else:
+            CV = 0
     else: 
         ME = -1
         SD = -1
@@ -239,8 +242,8 @@ def count_ME(param_=[], counts=[], n=None, s=None):
 def add_elem_to_hist(length_hist, degree_hist, x1, y1, x2, y2): 
     l = sqrt((x1-x2)**2+(y1-y2)**2)
     a = 180 - degrees(np.arccos((x1-x2)/(l)))
-    l = round(l, 4)
-    a = round(a, 2)
+    l = round(l)
+    a = round(a)
     lens = length_hist['length']
     l_counts = length_hist['count']
     deg = degree_hist['degree']

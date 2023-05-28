@@ -119,14 +119,8 @@ class ImageData:
         return self.cropped_image, self.coords
 
 
-    def create_image(self, pixels):
-        avarage = int(np.sum(pixels) / (pixels.shape[0] * pixels.shape[1]))
-        pixels[pixels < avarage] = 0
-        
-        return pixels
-
-
-    def show_result(self, vis=None, img1_shape=None, img2_shape=None, original_coords=None, photo_coords=None, map=None, length_hist=None, degree_hist=None):
+    def show_current_result(self, vis=None, img1_shape=None, img2_shape=None, original_coords=None, photo_coords=None, 
+                            map=None, length_hist=None, degree_hist=None):
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
         plt.gray()
 
@@ -135,19 +129,13 @@ class ImageData:
         ax[0, 0].set_title("Map vs. Photo on board\n"
                         "(all keypoints and matches)")
 
-        ax[0, 1].bar(length_hist['length'], length_hist['count'])
+        ax[0, 1].bar([str(elem) for elem in length_hist['length']], length_hist['count'])
         # ax[0, 1].axis('off')
         ax[0, 1].set_title("Vectors length histogram")
 
-        ax[1, 1].bar(degree_hist['degree'], degree_hist['count'])
+        ax[1, 1].bar([str(elem) for elem in degree_hist['degree']], degree_hist['count'])
         # ax[1, 1].axis('off')
         ax[1, 1].set_title("Vectors degrees histogram")
-        
-        # plot_matches(ax[1, 1], img1, img3, keypoints1, keypoints3, matches13[::15],
-        #             only_matches=True)
-        # ax[1, 1].axis('off')
-        # ax[1, 1].set_title("Original Image vs. Transformed Image\n"
-        #                 "(subset of matches for visibility)")
 
         original_coords_br = (original_coords[0]+img1_shape, original_coords[1]+img1_shape)
         map = cv2.rectangle(map, original_coords, original_coords_br, 255, 2)
@@ -161,7 +149,51 @@ class ImageData:
 
         plt.tight_layout()
         plt.show()
-        i=0
+
+
+    def show_total_result(self, map=None, img2_shape=None, photo_coords=None, l_ME_list=None, l_SD_list=None, l_CV_list=None, 
+                          d_ME_list=None, d_SD_list=None, d_CV_list=None, algo_name="No name"):
+        
+        fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(11, 8))
+        fig.suptitle(algo_name, fontsize=16)
+        plt.gray()
+        
+        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
+        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+
+        ax[2, 1].imshow(map,cmap = 'gray')
+        ax[2, 1].set_title("Map and photo")
+        ax[2, 0].axis('off')
+        ax[2, 1].axis('off')
+        ax[2, 2].axis('off')
+
+        ax[0, 0].set_title("Length mathematical expectation")
+        ax[0, 0].imshow(l_ME_list, cmap = "gray", vmin=0, vmax=255)
+        ax[0, 0].axis('off')
+
+        ax[0, 1].set_title("Length standard deviation")
+        ax[0, 1].imshow(l_SD_list, cmap = "gray", vmin=0, vmax=255)
+        ax[0, 1].axis('off')
+
+        ax[0, 2].set_title("Length coefficient of variation")
+        ax[0, 2].imshow(l_CV_list, cmap = "gray", vmin=0, vmax=255)
+        ax[0, 2].axis('off')
+
+        ax[1, 0].set_title("Degree mathematical expectation")
+        ax[1, 0].imshow(d_ME_list, cmap = "gray", vmin=0, vmax=255)
+        ax[1, 0].axis('off')
+
+        ax[1, 1].set_title("Degree standard deviation")
+        ax[1, 1].imshow(d_SD_list, cmap = "gray", vmin=0, vmax=255)
+        ax[1, 1].axis('off')
+
+        ax[1, 2].set_title("Degree coefficient of variation")
+        ax[1, 2].imshow(d_CV_list, cmap = "gray", vmin=0, vmax=255)
+        ax[1, 2].axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
 
 if __name__ == "__main__":
     data = ImageData()
