@@ -178,14 +178,16 @@ class Experiment:
         d_SD_list = self.normalize_array(d_SD_list)
         d_CV_list = self.normalize_array(d_CV_list)
 
-        print(f"\nSECONDS SPENT: {time.time() - init_time}")
+        time_spent = time.time() - init_time
+
+        print(f"\nSECONDS SPENT: {time_spent}")
         
         self.data.show_total_result_metrics(self.image1.copy(), self.photo_shape, self.photo_coords, l_ME_list, l_SD_list, l_CV_list, \
                                     d_ME_list, d_SD_list, d_CV_list, 
-                                    f"{exp_method} algorithm using ME, SD, CV\nby {self.step} step\n{round(time.time() - init_time, 2)} seconds spent")
+                                    f"{exp_method} algorithm using ME, SD, CV\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
         
         self.data.show_total_result_vectors(self.image1.copy(), self.photo_shape, self.photo_coords, true_vectors_list, exp_method, 
-                                            f"{exp_method} algorithm using identical vectors\nby {self.step} step\n{round(time.time() - init_time, 2)} seconds spent")
+                                            f"{exp_method} algorithm using identical vectors\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
 
     
     def normalize_array(self, arr):
