@@ -37,7 +37,17 @@ class Experiment:
         self.image1 = None
         self.image2 = None   
         self.xmin = 0 
-        
+
+        self.original_shape = None
+        self.photo_shape = None
+        self.photo = None
+        self.photo_coords = None
+        self.step = None
+        self.width = None
+        self.hight = None
+        self.shape_i = None
+        self.shape_j = None
+
         self.data = ImageData()   
 
 
@@ -89,42 +99,49 @@ class Experiment:
         # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
 
 
-    def experiment_SIFT(self, image1=None, image2=None, step=None):
+    def experiment_vectors(self, image1=None, image2=None, step=None):
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
-        image1 = self.data.image1.copy()
-        image2 = self.data.image2.copy()
+        self.image1 = self.data.image1.copy()
+        self.image2 = self.data.image2.copy()
 
-        original_shape = self.data.MAP_SLICE * 2
-        photo_shape = self.data.MAP_SLICE
-        step = int(self.data.MAP_SLICE / 2)
-        photo, photo_coords = self.data.random_piece_of_map(image2.copy(), 0)
+        self.original_shape = self.data.MAP_SLICE * 1
+        self.photo_shape = self.data.MAP_SLICE
+        self.step = int(self.data.MAP_SLICE * 0.1)
+        self.photo, self.photo_coords = self.data.random_piece_of_map(self.image2.copy(), 0)
         # photo_coords = (100, 200)
         # photo = self.data.piece_of_map(image2.copy(), photo_coords, photo_shape)
-        width = image1.shape[1] - photo_shape
-        hight = image1.shape[0] - photo_shape
-        shape_i = int(hight / step)
-        shape_j = int(width / step) +1
+        self.width = self.image1.shape[1] - self.photo_shape
+        self.hight = self.image1.shape[0] - self.photo_shape
+        self.shape_i = int(self.hight / self.step)
+        self.shape_j = int(self.width / self.step) +1
+
+        self.start_experiment("SIFT")
+        self.start_experiment("A-SIFT")
+
+        i=0
+
+
+    def start_experiment(self, exp_method="A-SIFT"):
+        print(f"START {exp_method} EXPERIMENT")
+        init_time = time.time()
 
         it, coord_i = 0, 0
-        true_vectors_list, l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                    np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
-        a_true_vectors_list, a_l_ME_list, a_l_SD_list, a_l_CV_list, a_d_ME_list, a_d_SD_list, a_d_CV_list = np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), \
-                                                                        np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)), np.empty(shape=(0,shape_j)) 
+        true_vectors_list, l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,self.shape_j)), \
+                                                                    np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)), \
+                                                                    np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)), \
+                                                                        np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)) 
 
-        while coord_i < (hight):
+        while coord_i < (self.hight):
             jt, coord_j = 0, 0
             true_vectors, l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), \
                                                                                 np.array([]), np.array([]), np.array([])
-            a_true_vectors, a_l_ME, a_l_SD, a_l_CV, a_d_ME, a_d_SD, a_d_CV = np.array([]), np.array([]), np.array([]), np.array([]), \
-                                                                                            np.array([]), np.array([]), np.array([])
-            while coord_j < (width):
+            while coord_j < (self.width):
                 print(f"\n---------- ITERATION: {it}, {jt} ----------")
                 original_coords = (coord_j, coord_i)
-                original = self.data.piece_of_map(image1.copy(), original_coords, original_shape)
+                original = self.data.piece_of_map(self.image1.copy(), original_coords, self.original_shape)
 
-                true_vectors_count, length_hist, degree_hist, vis1, vis2, l_metrics, d_metrics = start_SIFT(original, photo, original_coords, photo_coords, image1.copy())
+                true_vectors_count, length_hist, degree_hist, vis1, vis2, l_metrics, d_metrics = self.choose_method(exp_method, original, self.photo)
+
                 true_vectors = np.append(true_vectors, true_vectors_count)
                 l_ME = np.append(l_ME, l_metrics[0])
                 l_SD = np.append(l_SD, l_metrics[1])
@@ -137,22 +154,8 @@ class Experiment:
                 #                               length_hist, degree_hist, "SIFT algorithm (count metrics)")
                 # self.data.show_current_result(vis2, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
                                             #   length_hist, degree_hist, "SIFT algorithm (check vectors)")
-
-                a_true_vectors_count, a_length_hist, a_degree_hist, a_vis1, a_vis2, a_l_metrics, a_d_metrics = start_A_SIFT(original, photo)
-                a_true_vectors = np.append(a_true_vectors, a_true_vectors_count)
-                a_l_ME = np.append(a_l_ME, a_l_metrics[0])
-                a_l_SD = np.append(a_l_SD, a_l_metrics[1])
-                a_l_CV = np.append(a_l_CV, a_l_metrics[2])
-                a_d_ME = np.append(a_d_ME, a_d_metrics[0])
-                a_d_SD = np.append(a_d_SD, a_d_metrics[1])
-                a_d_CV = np.append(a_d_CV, a_d_metrics[2])
-
-                # self.data.show_current_result(a_vis1, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
-                #                               a_length_hist, a_degree_hist, "A-SIFT algorithm (count metrics)")
-                # self.data.show_current_result(a_vis2, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
-                #                               a_length_hist, a_degree_hist, "A-SIFT algorithm (check vectors)")
                 
-                coord_j += step
+                coord_j += self.step
                 jt+=1
 
             true_vectors_list = np.append(true_vectors_list, [true_vectors], axis=0)
@@ -163,15 +166,7 @@ class Experiment:
             d_SD_list = np.append(d_SD_list, [d_SD], axis=0)
             d_CV_list = np.append(d_CV_list, [d_CV], axis=0)
 
-            a_true_vectors_list = np.append(a_true_vectors_list, [a_true_vectors], axis=0)
-            a_l_ME_list = np.append(a_l_ME_list, [a_l_ME], axis=0)
-            a_l_SD_list = np.append(a_l_SD_list, [a_l_SD], axis=0)
-            a_l_CV_list = np.append(a_l_CV_list, [a_l_CV], axis=0)
-            a_d_ME_list = np.append(a_d_ME_list, [a_d_ME], axis=0)
-            a_d_SD_list = np.append(a_d_SD_list, [a_d_SD], axis=0)
-            a_d_CV_list = np.append(a_d_CV_list, [a_d_CV], axis=0)
-
-            coord_i += step
+            coord_i += self.step
             it+=1
 
         # ------------------VISUALISATION------------------
@@ -183,21 +178,14 @@ class Experiment:
         d_SD_list = self.normalize_array(d_SD_list)
         d_CV_list = self.normalize_array(d_CV_list)
 
-        a_true_vectors_list = self.normalize_array(a_true_vectors_list)
-        a_l_ME_list = self.normalize_array(a_l_ME_list)
-        a_l_SD_list = self.normalize_array(a_l_SD_list)
-        a_l_CV_list = self.normalize_array(a_l_CV_list)
-        a_d_ME_list = self.normalize_array(a_d_ME_list)
-        a_d_SD_list = self.normalize_array(a_d_SD_list)
-        a_d_CV_list = self.normalize_array(a_d_CV_list)
-
-        self.data.show_total_result_metrics(image1.copy(), photo_shape, photo_coords, l_ME_list, l_SD_list, l_CV_list, \
-                                    d_ME_list, d_SD_list, d_CV_list, f"SIFT algorithm using {step} step")
-        self.data.show_total_result_metrics(image1.copy(), photo_shape, photo_coords, a_l_ME_list, a_l_SD_list, a_l_CV_list, \
-                                    a_d_ME_list, a_d_SD_list, a_d_CV_list, f"ASIFT algorithm using {step} step")
-        self.data.show_total_result_vectors(image1.copy(), photo_shape, photo_coords, true_vectors_list, a_true_vectors_list, 
-                                            f"Counting identical vectors\nby {step} step")
-        i=0
+        print(f"\nSECONDS SPENT: {time.time() - init_time}")
+        
+        self.data.show_total_result_metrics(self.image1.copy(), self.photo_shape, self.photo_coords, l_ME_list, l_SD_list, l_CV_list, \
+                                    d_ME_list, d_SD_list, d_CV_list, 
+                                    f"{exp_method} algorithm using ME, SD, CV\nby {self.step} step\n{round(time.time() - init_time, 2)} seconds spent")
+        
+        self.data.show_total_result_vectors(self.image1.copy(), self.photo_shape, self.photo_coords, true_vectors_list, exp_method, 
+                                            f"{exp_method} algorithm using identical vectors\nby {self.step} step\n{round(time.time() - init_time, 2)} seconds spent")
 
     
     def normalize_array(self, arr):
@@ -240,6 +228,13 @@ class Experiment:
         # # plt.show()
         # plt.savefig(f'photos/results/exp/{i}_{j}.png')
         return extrema
+
+
+    def choose_method(self, method="A-SIFT", original=None, photo=None, original_coords=None, photo_coords=None, image1=None):
+        if method == "SIFT":
+            return start_SIFT(original, photo)
+        if method == "A-SIFT":
+            return start_A_SIFT(original, photo)
 
 
     def search_right_extremum(self, coords, extrema):

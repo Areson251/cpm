@@ -197,27 +197,23 @@ class ImageData:
         plt.show()
 
 
-    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None, a_true_vectors=None, algo_name="No name"):
+    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None,  method="A-SIFT", algo_name="No name"):
         
-        fig, ax = plt.subplots(nrows=1, ncols=3, figsize=(11, 8))
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
         fig.suptitle(algo_name, fontsize=16)
         plt.gray()
         
         photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
         map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
 
-        ax[0].set_title("SIFT")
+        ax[0].set_title(method)
         ax[0].imshow(true_vectors, cmap = "gray", vmin=0, vmax=255)
 
-        ax[1].set_title("A-SIFT")
-        ax[1].imshow(a_true_vectors, cmap = "gray", vmin=0, vmax=255)
-
-        ax[2].imshow(map,cmap = 'gray')
-        ax[2].set_title("Map and photo")
+        ax[1].imshow(map,cmap = 'gray')
+        ax[1].set_title("Map and photo")
 
         ax[0].axis('off')
         ax[1].axis('off')
-        ax[2].axis('off')
 
         plt.tight_layout()
         plt.show()

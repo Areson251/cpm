@@ -57,7 +57,7 @@ def use_cv_match_template(img, template, method):
     return res, top_left, bottom_right, min_val, max_val
 
 
-def start_SIFT(img1=None, img2=None, original_coords=None, photo_coords=None, map=None):
+def start_SIFT(img1=None, img2=None):
     print("\nSTART SIFT ALGORITHM")
     descriptor_extractor = SIFT()
 
