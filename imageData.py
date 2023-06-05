@@ -33,10 +33,15 @@ class ImageData:
         self.image1 = self.read_img(self.IMAGE_1_PATH)
         self.image2 = self.read_img(self.IMAGE_2_PATH)
 
+
     def read_img(self, path):
         print(path)
-        img = cv2.imread(path,0)
+        img = cv2.imread(path)
         return img
+
+
+    def img_to_gray(self, img):
+        return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
     def rotate_img(self, img, degree):
@@ -153,51 +158,7 @@ class ImageData:
         plt.show()
 
 
-    def show_total_result_metrics(self, map=None, img2_shape=None, photo_coords=None, l_ME_list=None, l_SD_list=None, l_CV_list=None, 
-                          d_ME_list=None, d_SD_list=None, d_CV_list=None, algo_name="No name"):
-        
-        fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(11, 8))
-        fig.suptitle(algo_name, fontsize=16)
-        plt.gray()
-        
-        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
-        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
-
-        ax[2, 1].imshow(map,cmap = 'gray')
-        ax[2, 1].set_title("Map and photo")
-        ax[2, 0].axis('off')
-        ax[2, 1].axis('off')
-        ax[2, 2].axis('off')
-
-        ax[0, 0].set_title("Length mathematical expectation")
-        ax[0, 0].imshow(l_ME_list, cmap = "gray", vmin=0, vmax=255)
-        ax[0, 0].axis('off')
-
-        ax[0, 1].set_title("Length standard deviation")
-        ax[0, 1].imshow(l_SD_list, cmap = "gray", vmin=0, vmax=255)
-        ax[0, 1].axis('off')
-
-        ax[0, 2].set_title("Length coefficient of variation")
-        ax[0, 2].imshow(l_CV_list, cmap = "gray", vmin=0, vmax=255)
-        ax[0, 2].axis('off')
-
-        ax[1, 0].set_title("Degree mathematical expectation")
-        ax[1, 0].imshow(d_ME_list, cmap = "gray", vmin=0, vmax=255)
-        ax[1, 0].axis('off')
-
-        ax[1, 1].set_title("Degree standard deviation")
-        ax[1, 1].imshow(d_SD_list, cmap = "gray", vmin=0, vmax=255)
-        ax[1, 1].axis('off')
-
-        ax[1, 2].set_title("Degree coefficient of variation")
-        ax[1, 2].imshow(d_CV_list, cmap = "gray", vmin=0, vmax=255)
-        ax[1, 2].axis('off')
-
-        plt.tight_layout()
-        plt.show()
-
-
-    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None,  method="A-SIFT", algo_name="No name"):
+    def show_total_result_metrics(self, map=None, img2_shape=None, photo_coords=None, CV_list=None, extrema=None, step=None, algo_name="No name"):
         
         fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
         fig.suptitle(algo_name, fontsize=16)
@@ -206,10 +167,48 @@ class ImageData:
         photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
         map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
 
+        x, x_map, y, y_map = [], [], [], []
+        for cor in extrema:
+            x.append(cor[1])
+            y.append(cor[2])
+            x_map.append(int(cor[1]*step + step/2))
+            y_map.append(int(cor[2]*step + step/2))
+
+        ax[0].imshow(CV_list, cmap = "gray")
+        ax[0].plot(x, y, "rx")
+        ax[0].axis('off')
+
+        ax[1].imshow(map)
+        ax[1].plot(x_map, y_map, "rx")
+        ax[1].axis('off')
+
+        plt.tight_layout()
+        plt.show()
+
+
+    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None,  method="A-SIFT", extrema=None, 
+                                  step=None, algo_name="No name"):
+        
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
+        fig.suptitle(algo_name, fontsize=16)
+        plt.gray()
+        
+        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
+        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+
+        x, x_map, y, y_map = [], [], [], []
+        for cor in extrema:
+            x.append(cor[1])
+            y.append(cor[2])
+            x_map.append(int(cor[1]*step + step/2))
+            y_map.append(int(cor[2]*step + step/2))
+
         ax[0].set_title(method)
         ax[0].imshow(true_vectors, cmap = "gray", vmin=0, vmax=255)
+        ax[0].plot(x, y, "rx")
 
         ax[1].imshow(map,cmap = 'gray')
+        ax[1].plot(x_map, y_map, "rx")
         ax[1].set_title("Map and photo")
 
         ax[0].axis('off')

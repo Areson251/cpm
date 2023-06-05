@@ -99,10 +99,12 @@ def start_SIFT(img1=None, img2=None):
 
     vis2, true_vectors_count = draw_vectors(vis2, vectors, vectors_stat)
 
-    l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
-    d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
+    l_CV = count_metrics(data_hist=length_hist, param="length")
+    d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
-    return true_vectors_count, length_hist, degree_hist, vis1, vis2, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+    CV = l_CV * d_CV
+
+    return true_vectors_count, length_hist, degree_hist, vis1, vis2, CV
 
 
 def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
@@ -220,10 +222,12 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
 
     vis2, true_vectors_count = draw_vectors(vis2, vectors, vectors_stat)
             
-    l_ME, l_SD, l_CV = count_metrics(data_hist=length_hist, param="length")
-    d_ME, d_SD, d_CV = count_metrics(data_hist=degree_hist, param="degree")
+    l_CV = count_metrics(data_hist=length_hist, param="length")
+    d_CV = count_metrics(data_hist=degree_hist, param="degree")
 
-    return true_vectors_count, length_hist, degree_hist, vis1, vis2, (l_ME, l_SD, l_CV), (d_ME, d_SD, d_CV)
+    CV = l_CV * d_CV
+
+    return true_vectors_count, length_hist, degree_hist, vis1, vis2, CV
 
 
 def draw_vectors(vis=None, vectors=None, vectors_stat=None):
@@ -308,11 +312,9 @@ def count_metrics(data_hist=None, param=""):
         else:
             CV = 0
     else: 
-        ME = -1
-        SD = -1
         CV = -1
     
-    return ME, SD, CV
+    return CV
 
 
 def count_ME(param_=[], counts=[], n=None, s=None):

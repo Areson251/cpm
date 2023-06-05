@@ -1,4 +1,5 @@
 from ctypes.wintypes import SHORT
+from collections import defaultdict
 from math import sqrt
 import cv2
 import numpy as np
@@ -20,7 +21,7 @@ from imageData import ImageData
 
 
 class Experiment:
-    def __init__(self, img_path1, img_path2, template_count, map_slice, exp_count, extrema_count, degree=0):
+    def __init__(self, img_path1, img_path2, template_count, temp_sli, map_slice, st, exp_count, extrema_count, degree=0):
         self.IMAGE_1_PATH = img_path1
         self.IMAGE_2_PATH = img_path2
         self.TEMPLATE_COUNT = template_count 
@@ -34,6 +35,8 @@ class Experiment:
         self.method = 'cv2.TM_CCOEFF_NORMED'
         ''' meth = 'cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
                 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED'    '''
+        self.image1_colored = None
+        self.image2_colored = None
         self.image1 = None
         self.image2 = None   
         self.xmin = 0 
@@ -54,8 +57,10 @@ class Experiment:
     def experiment_KORR(self):
         self.init_time = time.time()
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
-        self.image1 = self.data.image1
-        self.image2 = self.data.image2
+        self.image1_colored = self.data.image1.copy()
+        self.image2_colored = self.data.image2.copy()
+        self.image1 = self.data.img_to_gray(self.data.image1.copy())
+        self.image2 = self.data.img_to_gray(self.data.image2.copy())
 
         self.method_num = eval(self.method)
         x_indexes, y_indexes = [x for x in range(1, self.MAX_DEGREE+1)], []
@@ -75,7 +80,7 @@ class Experiment:
                 img2_rotated_coppy, coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin)
                 result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy_coppy, img2_rotated_coppy, self.method_num)  # match images
                 result_list.append(result)
-                extrema = self.find_extrema(result, self.EXTREMA_COUNT, i, j) # find extrema
+                extrema = self.find_extrema(result, self.EXTREMA_COUNT) # find extrema
                 idx = self.search_right_extremum(coords, extrema)
                 if idx:
                     true_predicted_count +=1 
@@ -84,7 +89,6 @@ class Experiment:
             y_indexes.append(true_predicted)
             self.DEGREE += 1
             
-
             # cv2.imwrite(f'photos/results/result.png', result)
             # plt.imshow(result,cmap = 'gray')
             # plt.show()
@@ -99,14 +103,16 @@ class Experiment:
         # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
 
 
-    def experiment_vectors(self, image1=None, image2=None, step=None):
+    def experiment_SIFT(self, image1=None, image2=None, step=None):
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
-        self.image1 = self.data.image1.copy()
-        self.image2 = self.data.image2.copy()
+        self.image1_colored = self.data.image1.copy()
+        self.image2_colored = self.data.image2.copy()
+        self.image1 = self.data.img_to_gray(self.data.image1.copy())
+        self.image2 = self.data.img_to_gray(self.data.image2.copy())
 
         self.original_shape = self.data.MAP_SLICE * 1
         self.photo_shape = self.data.MAP_SLICE
-        self.step = int(self.data.MAP_SLICE * 0.1)
+        self.step = int(self.data.MAP_SLICE * 0.25)
         self.photo, self.photo_coords = self.data.random_piece_of_map(self.image2.copy(), 0)
         # photo_coords = (100, 200)
         # photo = self.data.piece_of_map(image2.copy(), photo_coords, photo_shape)
@@ -115,40 +121,32 @@ class Experiment:
         self.shape_i = int(self.hight / self.step)
         self.shape_j = int(self.width / self.step) +1
 
-        self.start_experiment("SIFT")
+        # self.start_experiment("SIFT")
         self.start_experiment("A-SIFT")
 
         i=0
 
 
-    def start_experiment(self, exp_method="A-SIFT"):
+    def start_experiment(self, exp_method=None):
         print(f"START {exp_method} EXPERIMENT")
         init_time = time.time()
 
         it, coord_i = 0, 0
-        true_vectors_list, l_ME_list, l_SD_list, l_CV_list, d_ME_list, d_SD_list, d_CV_list = np.empty(shape=(0,self.shape_j)), \
-                                                                    np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)), \
-                                                                    np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)), \
-                                                                        np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j)) 
+        true_vectors_list, CV_list = np.empty(shape=(0,self.shape_j)), np.empty(shape=(0,self.shape_j))
 
         while coord_i < (self.hight):
             jt, coord_j = 0, 0
-            true_vectors, l_ME, l_SD, l_CV, d_ME, d_SD, d_CV = np.array([]), np.array([]), np.array([]), np.array([]), \
-                                                                                np.array([]), np.array([]), np.array([])
+            true_vectors, CV_row = np.array([]), np.array([])
+
             while coord_j < (self.width):
                 print(f"\n---------- ITERATION: {it}, {jt} ----------")
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(self.image1.copy(), original_coords, self.original_shape)
 
-                true_vectors_count, length_hist, degree_hist, vis1, vis2, l_metrics, d_metrics = self.choose_method(exp_method, original, self.photo)
+                true_vectors_count, length_hist, degree_hist, vis1, vis2, cv_metric = self.choose_method(exp_method, original, self.photo)
 
                 true_vectors = np.append(true_vectors, true_vectors_count)
-                l_ME = np.append(l_ME, l_metrics[0])
-                l_SD = np.append(l_SD, l_metrics[1])
-                l_CV = np.append(l_CV, l_metrics[2])
-                d_ME = np.append(d_ME, d_metrics[0])
-                d_SD = np.append(d_SD, d_metrics[1])
-                d_CV = np.append(d_CV, d_metrics[2])
+                CV_row = np.append(CV_row, cv_metric)
 
                 # self.data.show_current_result(vis1, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
                 #                               length_hist, degree_hist, "SIFT algorithm (count metrics)")
@@ -159,76 +157,76 @@ class Experiment:
                 jt+=1
 
             true_vectors_list = np.append(true_vectors_list, [true_vectors], axis=0)
-            l_ME_list = np.append(l_ME_list, [l_ME], axis=0)
-            l_SD_list = np.append(l_SD_list, [l_SD], axis=0)
-            l_CV_list = np.append(l_CV_list, [l_CV], axis=0)
-            d_ME_list = np.append(d_ME_list, [d_ME], axis=0)
-            d_SD_list = np.append(d_SD_list, [d_SD], axis=0)
-            d_CV_list = np.append(d_CV_list, [d_CV], axis=0)
+            CV_list = np.append(CV_list, [CV_row], axis=0)
 
             coord_i += self.step
             it+=1
 
-        # ------------------VISUALISATION------------------
         true_vectors_list = self.normalize_array(true_vectors_list)
-        l_ME_list = self.normalize_array(l_ME_list)
-        l_SD_list = self.normalize_array(l_SD_list)
-        l_CV_list = self.normalize_array(l_CV_list)
-        d_ME_list = self.normalize_array(d_ME_list)
-        d_SD_list = self.normalize_array(d_SD_list)
-        d_CV_list = self.normalize_array(d_CV_list)
+        CV_list = self.normalize_array(CV_list)
+
+        extremas_metrics = self.find_extrema(CV_list, self.EXTREMA_COUNT, 3, 0)
+        extremas_vectors = self.find_extrema(true_vectors_list, self.EXTREMA_COUNT, 3, 0)
 
         time_spent = time.time() - init_time
 
+        # ------------------VISUALISATION------------------
+
         print(f"\nSECONDS SPENT: {time_spent}")
         
-        self.data.show_total_result_metrics(self.image1.copy(), self.photo_shape, self.photo_coords, l_ME_list, l_SD_list, l_CV_list, \
-                                    d_ME_list, d_SD_list, d_CV_list, 
-                                    f"{exp_method} algorithm using ME, SD, CV\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
+        self.data.show_total_result_metrics(self.image1_colored.copy(), self.photo_shape, self.photo_coords, CV_list, extremas_metrics, self.step, 
+                                    f"{exp_method} algorithm using CV\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
         
-        self.data.show_total_result_vectors(self.image1.copy(), self.photo_shape, self.photo_coords, true_vectors_list, exp_method, 
-                                            f"{exp_method} algorithm using identical vectors\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
+        self.data.show_total_result_vectors(self.image1_colored.copy(), self.photo_shape, self.photo_coords, true_vectors_list, exp_method, extremas_vectors, 
+                                            self.step, f"{exp_method} algorithm using identical vectors\nby {self.step} step\n{round(time_spent, 2)} seconds spent")
 
     
     def normalize_array(self, arr):
-        # norm = np.linalg.norm(arr)
-        # arr = arr / norm * 255
         return (255*(arr - np.min(arr))/np.ptp(arr)).astype(int) 
 
 
-    def find_extrema(self, res, count, i, j):
-        neighborhood_size = 100
-        threshold = 0.05
+    def find_extrema(self, res, count, neighborhood_size=100, threshold=0.05):
+        res_data = res.copy()
 
-        # data = scipy.misc.imread(fname)
-
-        data = res.copy()
-
-        data_max = ndimage.maximum_filter(data, neighborhood_size)
-        maxima = (data == data_max)
-        data_min = ndimage.minimum_filter(data, neighborhood_size)
+        data_max = ndimage.maximum_filter(res_data, neighborhood_size)
+        maxima = (res_data == data_max)
+        data_min = ndimage.minimum_filter(res_data, neighborhood_size)
         diff = ((data_max - data_min) > threshold)
         maxima[diff == 0] = 0
 
         labeled, num_objects = ndimage.label(maxima)
+
+        # slices = np.array(ndimage.center_of_mass(res_data, labeled, range(1, num_objects+1)))
         slices = ndimage.find_objects(labeled)
+
         x, y = [], []
-        extrema = {}
+        extrema = []
         for dy,dx in slices:
             x_center = int((dx.start + dx.stop - 1)/2)
+            # x_center = int(dx)
             x.append(x_center)
             y_center = int((dy.start + dy.stop - 1)/2)
+            # y_center = int(dy)
             y.append(y_center)
-            extrema[data[y_center][x_center]] = (x_center, y_center)
+            extrema.append((res_data[y_center][x_center], x_center, y_center))
             # print(type(x_center),type(y_center))
-        
-        extrema = sorted(extrema.items(),  reverse=True)[:count]
-        extrema = [x[1] for x in extrema]
 
-        # plt.imshow(data,cmap = 'gray')   #   THIS PLOT SHOWS FALSE INFORMATION!!!!!!!!!!!!!!!
+        # plt.imshow(res_data,cmap = 'gray')  
         # plt.plot(x, y, "rx")
-        # # plt.show()
-        # plt.savefig(f'photos/results/exp/{i}_{j}.png')
+        # plt.show()
+        
+        extrema = sorted(extrema,  reverse=True)[:count]
+        # extrema = [x[1] for x in extrema]
+
+        # x, y = [], []
+        # for cor in extrema:
+        #     x.append(cor[1])
+        #     y.append(cor[2])
+
+        # plt.imshow(res_data,cmap = 'gray')  
+        # plt.plot(x, y, "rx")
+        # plt.show()
+
         return extrema
 
 
