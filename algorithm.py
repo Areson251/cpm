@@ -121,19 +121,19 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
 
     if ori_img1_.shape[0] > MAX_SIZE or ori_img1_.shape[1] > MAX_SIZE:
         ratio_1 = MAX_SIZE / ori_img1_.shape[1]
-        print("Large input detected, image 1 will be resized")
+        # print("Large input detected, image 1 will be resized")
         img1_ = image_resize(ori_img1_, ratio_1)
     else:
         img1_ = ori_img1_
 
     if ori_img2_.shape[0] > MAX_SIZE or ori_img2_.shape[1] > MAX_SIZE:
         ratio_2 = MAX_SIZE / ori_img2_.shape[1]
-        print("Large input detected, image 2 will be resized")
+        # print("Large input detected, image 2 will be resized")
         img2_ = image_resize(ori_img2_, ratio_2)
     else:
         img2_ = ori_img2_
 
-    print(f"Using {detector_name.upper()} detector...")
+    # print(f"Using {detector_name.upper()} detector...")
 
     # Profile time consumption of keypoints extraction
     with Timer(f"Extracting {detector_name.upper()} keypoints..."):
@@ -141,7 +141,7 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
         kp1, desc1 = affine_detect(detector, img1_, pool=pool)
         kp2, desc2 = affine_detect(detector, img2_, pool=pool)
 
-    print(f"img1 - {len(kp1)} features, img2 - {len(kp2)} features")
+    # print(f"img1 - {len(kp1)} features, img2 - {len(kp2)} features")
 
     # Profile time consumption of keypoints matching
     with Timer('Matching...'):
@@ -175,7 +175,7 @@ def start_A_SIFT(ori_img1_, ori_img2_, MAX_SIZE=1024):
         kp_pairs = [kpp for kpp, flag in zip(kp_pairs, status) if flag]
     else:
         H, status = None, None
-        print(f"{len(p1)} matches found, not enough for homography estimation")
+        # print(f"{len(p1)} matches found, not enough for homography estimation")
     
     h1, w1 = img1_.shape[:2]
     h2, w2 = img2_.shape[:2]

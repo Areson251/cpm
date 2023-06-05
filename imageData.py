@@ -158,61 +158,38 @@ class ImageData:
         plt.show()
 
 
-    def show_total_result_metrics(self, map=None, img2_shape=None, photo_coords=None, CV_list=None, extrema=None, step=None, algo_name="No name"):
+    def show_total_result(self, map=None, img1_shape=None, img2_shape=None, photo_coords=None, data_list=None, extrema=None, step=None, algo_name="No name"):
         
-        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(11, 8))
         fig.suptitle(algo_name, fontsize=16)
         plt.gray()
         
+        blue = (0, 0, 255)
+        red = (255, 0, 0)
+
         photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
-        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+        map = cv2.rectangle(map, photo_coords, photo_coords_br, blue, 2)
+        center = (photo_coords_br[0] - img2_shape/2, photo_coords[1] + img2_shape/2)
 
         x, x_map, y, y_map = [], [], [], []
         for cor in extrema:
             x.append(cor[1])
             y.append(cor[2])
-            x_map.append(int(cor[1]*step + step/2))
-            y_map.append(int(cor[2]*step + step/2))
-
-        ax[0].imshow(CV_list, cmap = "gray")
-        ax[0].plot(x, y, "rx")
-        ax[0].axis('off')
-
-        ax[1].imshow(map)
-        ax[1].plot(x_map, y_map, "rx")
-        ax[1].axis('off')
-
-        plt.tight_layout()
-        plt.show()
+            cur_x_map = int(cor[1]*step)
+            cur_y_map = int(cor[2]*step)
+            x_map.append(cur_x_map + img2_shape/2)
+            y_map.append(cur_y_map + img2_shape/2)
+            map = cv2.rectangle(map, (cur_x_map, cur_y_map), (cur_x_map+img1_shape, cur_y_map+img1_shape), red, 2)
 
 
-    def show_total_result_vectors(self, map=None, img2_shape=None, photo_coords=None, true_vectors=None,  method="A-SIFT", extrema=None, 
-                                  step=None, algo_name="No name"):
-        
-        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
-        fig.suptitle(algo_name, fontsize=16)
-        plt.gray()
-        
-        photo_coords_br = (photo_coords[0]+img2_shape, photo_coords[1]+img2_shape)
-        map = cv2.rectangle(map, photo_coords, photo_coords_br, 255, 2)
+        ax[0, 0].imshow(data_list, cmap = "gray")
+        ax[0, 0].plot(x, y, "rx")
+        ax[0, 0].axis('off')
 
-        x, x_map, y, y_map = [], [], [], []
-        for cor in extrema:
-            x.append(cor[1])
-            y.append(cor[2])
-            x_map.append(int(cor[1]*step + step/2))
-            y_map.append(int(cor[2]*step + step/2))
-
-        ax[0].set_title(method)
-        ax[0].imshow(true_vectors, cmap = "gray", vmin=0, vmax=255)
-        ax[0].plot(x, y, "rx")
-
-        ax[1].imshow(map,cmap = 'gray')
-        ax[1].plot(x_map, y_map, "rx")
-        ax[1].set_title("Map and photo")
-
-        ax[0].axis('off')
-        ax[1].axis('off')
+        ax[0, 1].imshow(map)
+        ax[0, 1].plot(x_map, y_map, "rx")
+        ax[0, 1].plot(center[0], center[1], "bx")
+        ax[0, 1].axis('off')
 
         plt.tight_layout()
         plt.show()
