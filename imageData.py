@@ -93,18 +93,19 @@ class ImageData:
 
         i, ymin, ymax = 0, 0, max_hight
         for x in source_img:  # find ymin and ymax for current xmin
-            if x[left_w]:
+            if x[left_w] and x[left_w+self.MAP_SLICE]:
+                print(x[left_w], x[left_w+self.MAP_SLICE])
+                ymax = i
                 if not ymin:
                     ymin = i
-                ymax = i
             i+=1
         i=0
 
-        # print(f"FUNCTION: random_piece_of_map {xmin} {ymin} {ymax}")
-        # plt.imshow(source_img,cmap = 'gray')
-        # plt.plot(xmin, ymin, "rx")
-        # plt.plot(xmin, ymax, "rx")
-        # plt.show()
+        print(f"FUNCTION: random_piece_of_map {xmin} {ymin} {ymax}")
+        plt.imshow(source_img,cmap = 'gray')
+        plt.plot(left_w, ymin, "rx")
+        plt.plot(left_w, ymax, "gx")
+        plt.show()
 
 
         left_h = random.randint(ymin, ymax - self.MAP_SLICE) 
@@ -114,12 +115,12 @@ class ImageData:
         image = cv2.rectangle(source_img , self.coords, bottom_right, 255, 2)
         self.cropped_image = source_img[left_h:left_h+self.MAP_SLICE, left_w:left_w+self.MAP_SLICE]
 
-        # print(self.coords, bottom_right)
-        # plt.imshow(image,cmap = 'gray')
-        # plt.show()
+        print(self.coords, bottom_right)
+        plt.imshow(image,cmap = 'gray')
+        plt.show()
 
-        # plt.imshow(self.cropped_image,cmap = 'gray')
-        # plt.show()
+        plt.imshow(self.cropped_image,cmap = 'gray')
+        plt.show()
 
         return self.cropped_image, self.coords
 

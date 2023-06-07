@@ -124,9 +124,9 @@ class Experiment:
         self.shape_j = int(self.width / self.step) +1
 
         x_indexes, metrics_indexes, vectors_indexes = [x for x in range(0, self.MAX_DEGREE+1)], [], []
-        self.DEGREE = 0
-        for i in range(self.MAX_DEGREE+1):
+        for i in range(self.MAX_DEGREE, self.MAX_DEGREE+1):
             print(f"ITERATION: {i}")
+            self.DEGREE = i
             img1_coppy = self.image1.copy()
             img2_coppy = self.image2.copy()
             result_list = []

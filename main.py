@@ -23,11 +23,11 @@ if __name__ == "__main__":
     MAP_SLICE = 301
     STEP = int(MAP_SLICE * 0.25)
     DIFFERENCE = 1
-    EXTREMA_COUNT = 5
-    MAX_DEGREE = 1
-    TEMPLATE_COUNT = 2
+    EXTREMA_COUNT = 10
+    MAX_DEGREE = 30
+    TEMPLATE_COUNT = 10
 
     experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, STEP, DIFFERENCE, EXTREMA_COUNT, MAX_DEGREE)
-    experiment.experiment_KORR()
-    experiment.experiment_SIFT("SIFT")
+    # experiment.experiment_KORR()
     experiment.experiment_SIFT("A-SIFT")
+    # experiment.experiment_SIFT("SIFT")
