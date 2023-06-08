@@ -66,8 +66,9 @@ class Experiment:
         self.method_num = eval(self.method)
         x_indexes, y_indexes = [x for x in range(0, self.MAX_DEGREE+1)], []
         self.DEGREE = 0
-        for i in range(self.MAX_DEGREE+1):
+        for i in range(0, self.MAX_DEGREE+1):
             print(f"ITERATION: {i}")
+            self.DEGREE = -i
             img1_coppy = self.image1.copy()
             img2_coppy = self.image2.copy()
             result_list = []
@@ -78,7 +79,7 @@ class Experiment:
                 print(f"TEMPLATE {j}")
                 img1_coppy_coppy = img1_coppy.copy()
                 img2_rotated_coppy = img2_rotated.copy()
-                img2_rotated_coppy, coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin)
+                img2_rotated_coppy, coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin, self.DEGREE, img1_coppy_coppy)
                 result, t_l, b_r, minv, maxv = use_cv_match_template(img1_coppy_coppy, img2_rotated_coppy, self.method_num)  # match images
                 result_list.append(result)
                 extrema = self.find_extrema(result, self.EXTREMA_COUNT) # find extrema
@@ -88,7 +89,6 @@ class Experiment:
                 # y_indexes.append(idx)
             true_predicted = true_predicted_count / self.TEMPLATE_COUNT * 100
             y_indexes.append(true_predicted)
-            self.DEGREE += 1
             
             # cv2.imwrite(f'photos/results/result.png', result)
             # plt.imshow(result,cmap = 'gray')
@@ -124,7 +124,7 @@ class Experiment:
         self.shape_j = int(self.width / self.step) +1
 
         x_indexes, metrics_indexes, vectors_indexes = [x for x in range(0, self.MAX_DEGREE+1)], [], []
-        for i in range(self.MAX_DEGREE, self.MAX_DEGREE+1):
+        for i in range(0, self.MAX_DEGREE+1):
             print(f"ITERATION: {i}")
             self.DEGREE = i
             img1_coppy = self.image1.copy()
@@ -138,13 +138,9 @@ class Experiment:
                 img1_coppy_coppy = img1_coppy.copy()
                 img2_rotated_coppy = img2_rotated.copy()
 
-                # img2_rotated_coppy, coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin)
-
-                self.photo, self.photo_coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin)
+                self.photo, self.photo_coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin, self.DEGREE, img1_coppy_coppy)
                 CV_list, true_vectors_list, extremas_metrics, extremas_vectors = self.start_experiment(method, i, j) # match images
 
-                # result_list.append(result)
-                # extrema = self.find_extrema(result, self.EXTREMA_COUNT) # find extrema
 
                 idx = self.search_right_extremum(self.photo_coords, extremas_metrics, self.step)
                 if idx:
@@ -159,8 +155,6 @@ class Experiment:
             
             true_predicted = vectors_true_predicted_count / self.TEMPLATE_COUNT * 100
             vectors_indexes.append(true_predicted)
-
-            self.DEGREE += 1
 
         # print(x_indexes, '\n', y_indexes)
         
@@ -195,10 +189,10 @@ class Experiment:
                 true_vectors = np.append(true_vectors, true_vectors_count)
                 CV_row = np.append(CV_row, cv_metric)
 
-                # self.data.show_current_result(vis1, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
-                #                               length_hist, degree_hist, "SIFT algorithm (count metrics)")
-                # self.data.show_current_result(vis2, original_shape, photo_shape, original_coords, photo_coords, image1.copy(), 
-                                            #   length_hist, degree_hist, "SIFT algorithm (check vectors)")
+                # self.data.show_current_result(vis1, self.original_shape, self.photo_shape, original_coords, self.photo_coords, self.image1.copy(), 
+                #                               length_hist, degree_hist, f"{exp_method} algorithm (count metrics)")
+                # self.data.show_current_result(vis2, self.original_shape, self.photo_shape, original_coords, self.photo_coords, self.image1.copy(), 
+                #                               length_hist, degree_hist, f"{exp_method} algorithm (check vectors)")
                 
                 coord_j += self.step
                 jt+=1

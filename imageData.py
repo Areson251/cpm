@@ -85,7 +85,7 @@ class ImageData:
         return cropped_image.copy()
 
     
-    def random_piece_of_map(self, img, xmin):
+    def random_piece_of_map(self, img, xmin=0, degree=0, orig=None):
         source_img = img.copy()
         max_width = source_img.shape[1]
         max_hight = source_img.shape[0]
@@ -94,33 +94,46 @@ class ImageData:
         i, ymin, ymax = 0, 0, max_hight
         for x in source_img:  # find ymin and ymax for current xmin
             if x[left_w] and x[left_w+self.MAP_SLICE]:
-                print(x[left_w], x[left_w+self.MAP_SLICE])
+                # print(x[left_w], x[left_w+self.MAP_SLICE])
                 ymax = i
                 if not ymin:
                     ymin = i
             i+=1
         i=0
 
-        print(f"FUNCTION: random_piece_of_map {xmin} {ymin} {ymax}")
-        plt.imshow(source_img,cmap = 'gray')
-        plt.plot(left_w, ymin, "rx")
-        plt.plot(left_w, ymax, "gx")
-        plt.show()
-
+        # print(f"FUNCTION: random_piece_of_map {xmin} {ymin} {ymax}")
+        # plt.imshow(source_img,cmap = 'gray')
+        # plt.plot(left_w, ymin, "rx")
+        # plt.plot(left_w, ymax, "gx")
+        # plt.show()
 
         left_h = random.randint(ymin, ymax - self.MAP_SLICE) 
+
         self.coords = (left_w, left_h)
+
         bottom_right = (self.coords[0] + self.MAP_SLICE, self.coords[1] + self.MAP_SLICE)
         # print(top_left, bottom_right)
         image = cv2.rectangle(source_img , self.coords, bottom_right, 255, 2)
         self.cropped_image = source_img[left_h:left_h+self.MAP_SLICE, left_w:left_w+self.MAP_SLICE]
 
-        print(self.coords, bottom_right)
-        plt.imshow(image,cmap = 'gray')
-        plt.show()
+        # print(self.coords)
+        C0 = round((-1)*orig.shape[0] * sin(radians(degree)))  
+        C1 = 0
+        new_x = round(left_w * cos(radians(degree)) + left_h * sin(radians(degree)) + C0)   # get new coords (WRONG)
+        new_y = round(left_w * (-sin(radians(degree))) + left_h * cos(radians(degree)) + C1)
+        self.coords = (new_x, new_y)
+        # print(self.coords)
+        # print(C0, C1)
 
-        plt.imshow(self.cropped_image,cmap = 'gray')
-        plt.show()
+        # fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
+        # ax[1].imshow(orig,cmap = 'gray')
+        # ax[1].plot(new_x, new_y, "rx")
+        # ax[0].imshow(image,cmap = 'gray')
+        # plt.show()
+
+
+        # plt.imshow(self.cropped_image,cmap = 'gray')
+        # plt.show()
 
         return self.cropped_image, self.coords
 

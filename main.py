@@ -28,6 +28,6 @@ if __name__ == "__main__":
     TEMPLATE_COUNT = 10
 
     experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, STEP, DIFFERENCE, EXTREMA_COUNT, MAX_DEGREE)
-    # experiment.experiment_KORR()
+    experiment.experiment_KORR()
     experiment.experiment_SIFT("A-SIFT")
-    # experiment.experiment_SIFT("SIFT")
+    experiment.experiment_SIFT("SIFT")
