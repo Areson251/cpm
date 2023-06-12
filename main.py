@@ -26,8 +26,12 @@ if __name__ == "__main__":
     EXTREMA_COUNT = 10
     MAX_DEGREE = 30
     TEMPLATE_COUNT = 10
+    EXPERIMENT_COUNT = 10
 
     experiment = Experiment(IMAGE_1_PATH, IMAGE_2_PATH, TEMPLATE_COUNT, MAP_SLICE, STEP, DIFFERENCE, EXTREMA_COUNT, MAX_DEGREE)
-    experiment.experiment_KORR()
-    experiment.experiment_SIFT("A-SIFT")
-    experiment.experiment_SIFT("SIFT")
+
+    for i in range(2, EXPERIMENT_COUNT):
+        experiment.experiment_KORR(exp_number=i)
+        experiment.experiment_SIFT("A-SIFT", exp_number=i)
+    for i in range(1, EXPERIMENT_COUNT):
+        experiment.experiment_SIFT("SIFT", exp_number=i)

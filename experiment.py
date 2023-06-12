@@ -55,7 +55,7 @@ class Experiment:
         self.data = ImageData()   
 
 
-    def experiment_KORR(self):
+    def experiment_KORR(self, exp_number=0):
         self.init_time = time.time()
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
         self.image1_colored = self.data.image1.copy()
@@ -101,12 +101,16 @@ class Experiment:
         print(f"SECONDS SPENT: {time.time() - self.init_time}")
         plt.plot(x_indexes, y_indexes, "b", label="korrelation")
         plt.legend(loc="upper right")
-        plt.savefig(f"photos/results/exp/KORR.jpg", dpi=fig.dpi)
+        plt.savefig(f"photos/results/exp/KORR/exp_{exp_number}.jpg", dpi=fig.dpi)
+
+        with open(f'photos/results/exp/KORR/exp_{exp_number}.txt', 'x') as fp:
+            sp = ' '.join(str(x) for x in y_indexes)
+            fp.write(sp)
         # print(f"from {self.EXPERIMENT_COUNT} EXPERIMENTS found {error_count} ERRORS")
         # print(f"{round((self.EXPERIMENT_COUNT-error_count)/self.EXPERIMENT_COUNT*100, 2)}% true")
 
 
-    def experiment_SIFT(self, method=None, image1=None, image2=None, step=None):
+    def experiment_SIFT(self, method=None, image1=None, image2=None, step=None, exp_number=0):
         self.init_time = time.time()
 
         self.data.start_preprocessing(self.IMAGE_1_PATH, self.IMAGE_2_PATH, self.MAP_SLICE) 
@@ -132,14 +136,14 @@ class Experiment:
             result_list = []
             metrics_true_predicted_count = 0
             vectors_true_predicted_count = 0
-            img2_rotated, self.xmin = self.data.rotate_img(img2_coppy, self.DEGREE)
+            img2_rotated, self.xmin = self.data.rotate_img(img2_coppy.copy(), self.DEGREE)
             for j in range(self.TEMPLATE_COUNT):
                 print(f"TEMPLATE {j}")
                 img1_coppy_coppy = img1_coppy.copy()
                 img2_rotated_coppy = img2_rotated.copy()
 
-                self.photo, self.photo_coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin, self.DEGREE, img1_coppy_coppy)
-                CV_list, true_vectors_list, extremas_metrics, extremas_vectors = self.start_experiment(method, i, j) # match images
+                self.photo, self.photo_coords = self.data.random_piece_of_map(img2_rotated_coppy, self.xmin, self.DEGREE, img2_coppy)
+                CV_list, true_vectors_list, extremas_metrics, extremas_vectors = self.start_experiment(method, i, j, exp_number) # match images
 
 
                 idx = self.search_right_extremum(self.photo_coords, extremas_metrics, self.step)
@@ -164,11 +168,19 @@ class Experiment:
         plt.plot(x_indexes, metrics_indexes, 'b', label="CV")
         plt.plot(x_indexes, vectors_indexes, 'r', label="vectors")
         plt.legend(loc="upper right")
-        plt.savefig(f"photos/results/exp/{method}.jpg", dpi=fig.dpi)
+        plt.savefig(f"photos/results/exp/{method}/exp_{exp_number}.jpg", dpi=fig.dpi)
         # plt.show()
 
+        with open(f'photos/results/exp/{method}/exp_vec_{exp_number}.txt', 'x') as fp:
+            sp = ' '.join(str(x) for x in vectors_indexes)
+            fp.write(sp)
 
-    def start_experiment(self, exp_method=None, degree=0, template=0):
+        with open(f'photos/results/exp/{method}/exp_CV_{exp_number}.txt', 'x') as fp:
+            sp = ' '.join(str(x) for x in metrics_indexes)
+            fp.write(sp)
+
+
+    def start_experiment(self, exp_method=None, degree=0, template=0, exp_number=0):
         print(f"START {exp_method}")
         init_time = time.time()
 
@@ -180,7 +192,7 @@ class Experiment:
             true_vectors, CV_row = np.array([]), np.array([])
 
             while coord_j < (self.width):
-                print(f"\n[DEG: {degree}, TEMP: {template}]: ---------- ITERATION: {it}, {jt} ----------")
+                print(f"\n[EXP: {exp_number}, DEG: {degree}, TEMP: {template}]: ---------- ITERATION: {it}, {jt} ----------")
                 original_coords = (coord_j, coord_i)
                 original = self.data.piece_of_map(self.image1.copy(), original_coords, self.original_shape)
 

@@ -117,21 +117,21 @@ class ImageData:
         self.cropped_image = source_img[left_h:left_h+self.MAP_SLICE, left_w:left_w+self.MAP_SLICE]
 
         # print(self.coords)
-        C0 = round((-1)*orig.shape[0] * sin(radians(degree)))  
+        C0 = round(orig.shape[0] * sin(radians(degree)))  
         C1 = 0
-        new_x = round(left_w * cos(radians(degree)) + left_h * sin(radians(degree)) + C0)   # get new coords (WRONG)
-        new_y = round(left_w * (-sin(radians(degree))) + left_h * cos(radians(degree)) + C1)
+        new_x = round((left_w - C0) * cos(radians(-degree)) - (left_h - C1) * sin(radians(-degree)))   # get new coords (WRONG)
+        new_y = round((left_w - C0) * sin(radians(-degree)) + (left_h - C1) * cos(radians(-degree)))
         self.coords = (new_x, new_y)
+
         # print(self.coords)
         # print(C0, C1)
-
         # fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(11, 8))
         # ax[1].imshow(orig,cmap = 'gray')
         # ax[1].plot(new_x, new_y, "rx")
+        # ax[0].plot(left_w, left_h, "rx")
         # ax[0].imshow(image,cmap = 'gray')
         # plt.show()
-
-
+        
         # plt.imshow(self.cropped_image,cmap = 'gray')
         # plt.show()
 
